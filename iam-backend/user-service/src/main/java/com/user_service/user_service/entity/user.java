@@ -2,14 +2,18 @@ package com.user_service.user_service.entity;
 
 import java.time.LocalDateTime;
 
+import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-
+@Entity
+@Table(name = "user_account")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class user {
 	 @Id
 	    @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,7 +29,9 @@ public class user {
 	    private String email;
 
 	    private String contactNo;
-	    private String name;
+	    private String firstName;
+	    private String middleName;
+	    private String lastName;
 	    private String password;
 	    private LocalDateTime lastLogin;
 	    private String status = "ACTIVE";
