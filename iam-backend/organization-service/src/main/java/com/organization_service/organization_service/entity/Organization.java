@@ -2,9 +2,6 @@ package com.organization_service.organization_service.entity;
 
 import java.time.LocalDateTime;
 
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -26,23 +23,26 @@ import lombok.Setter;
 @Builder
 public class Organization {
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long orgId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long orgId;
 
-	@Column(nullable = false)
-	private String name;
+    @Column(nullable = false)
+    private String name;
 
-	private Long parentOrgId;
-	private Integer level;
-	private String address;
+    private Long parentOrgId;
+    private Integer level;
+    private String address;
+    private String status; // ACTIVE / INACTIVE
 
-	@Column(length = 50)
-	private String status = "ACTIVE";
+    // GPS/autofill fields
+    private Double latitude;
+    private Double longitude;
+    private String region;
+    private String country;
+    private String state;
+    private String city;
 
-	@CreationTimestamp
-	private LocalDateTime createdAt;
-
-	@UpdateTimestamp
-	private LocalDateTime updatedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
 }
