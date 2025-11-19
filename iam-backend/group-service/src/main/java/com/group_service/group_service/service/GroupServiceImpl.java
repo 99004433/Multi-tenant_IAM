@@ -3,12 +3,17 @@ package com.group_service.group_service.service;
 import com.group_service.group_service.dto.GroupRequestDto;
 import com.group_service.group_service.dto.GroupResponseDto;
 import com.group_service.group_service.entity.Group;
+import com.group_service.group_service.exception.GroupNotFoundException;
 import com.group_service.group_service.mapper.GroupMapper;
 import com.group_service.group_service.repository.GroupRepository;
 import com.group_service.group_service.service.GroupService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -18,41 +23,66 @@ public class GroupServiceImpl implements GroupService {
     private final GroupRepository groupRepository;
 
     @Override
-    public GroupResponseDto createGroup(GroupRequestDto requestDto) {
-        Group entity = GroupMapper.toEntity(requestDto);
-        entity = groupRepository.save(entity);
-        return GroupMapper.toDto(entity);
+    public Mono<GroupResponseDto> createGroup(GroupRequestDto requestDto) {
+        // Convert DTO to entity
+        Group groupEntity = GroupMapper.toEntity(requestDto);
+
+        // Save entity and map back to response DTO
+        return groupRepository.save(groupEntity)
+                .map(GroupMapper::toDto);
+
     }
 
     @Override
-    public GroupResponseDto getGroupById(Long id) {
-        Group entity = groupRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Group not found"));
-        return GroupMapper.toDto(entity);
+    public Mono<GroupResponseDto> getGroupById(Long id) {
+        return groupRepository.findById(id)
+                .switchIfEmpty(Mono.error(new GroupNotFoundException("Group not found with id: " + id)))
+                .map(GroupMapper::toDto);
     }
 
     @Override
-    public GroupResponseDto updateGroup(Long id, GroupRequestDto requestDto) {
-        Group entity = groupRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Group not found"));
-        GroupMapper.updateEntity(entity, requestDto);
-        entity = groupRepository.save(entity);
-        return GroupMapper.toDto(entity);
+    public Flux<Group> getAllGroups() {
+        return groupRepository.findAll();
     }
 
-    @Override
-    public void deleteGroup(Long id) {
-        if (!groupRepository.existsById(id)) {
-            throw new RuntimeException("Group not found");
-        }
-        groupRepository.deleteById(id);
-    }
+//    @Override
+//    public Mono<GroupResponseDto> updateGroup(Long id, GroupRequestDto requestDto) {
+//        return groupRepository.findById(id)
+//                .flatMap(existing -> {
+//                    // Update entity using mapper
+//                    GroupMapper.updateEntity(existing, requestDto);
+//                    existing.setUpdatedAt(LocalDateTime.now());
+//                    return groupRepository.save(existing);
+//                })
+//                .map(GroupMapper::toDto);
+//    }
+@Override
+public Mono<GroupResponseDto> updateGroup(Long id, GroupRequestDto requestDto) {
+    return groupRepository.findById(id)
+            .switchIfEmpty(Mono.error(new GroupNotFoundException("Group not found with id: " + id)))
+            .flatMap(existing -> {
+                // Update entity using mapper
+                GroupMapper.updateEntity(existing, requestDto);
+                existing.setUpdatedAt(LocalDateTime.now());
+                return groupRepository.save(existing);
+            })
+            .map(GroupMapper::toDto);
+}
 
-    @Override
-    public List<GroupResponseDto> getAllGroups() {
-        return groupRepository.findAll()
-                .stream()
-                .map(GroupMapper::toDto)
-                .toList();
-    }
+//    @Override
+//    public Mono<Void> deleteGroupById(Long id) {
+//        return groupRepository.deleteById(id);
+//    }
+@Override
+public Mono<Void> deleteGroupById(Long id) {
+    return groupRepository.findById(id)
+            .switchIfEmpty(Mono.error(new GroupNotFoundException("Group with ID " + id + " not found")))
+            .flatMap(group -> groupRepository.deleteById(id))
+            .onErrorResume(DataAccessException.class, ex -> {
+                return Mono.error(new RuntimeException("Database error occurred while deleting group: " + ex.getMessage()));
+            });
+}
+
+
+
 }

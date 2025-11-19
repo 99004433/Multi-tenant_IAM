@@ -1,10 +1,9 @@
 package com.user_service.user_service.dto;
 
-import jakarta.persistence.Column;
+
 import lombok.Builder;
 import lombok.Data;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+
 
 import java.time.LocalDateTime;
 
@@ -21,6 +20,7 @@ public class UserResponseDto {
 
     private Long groupId; // from group-service
     private Long roleId;  // from role-service
+    private String role;
     private String contactNo;
     private LocalDateTime lastLogin;
     private String status = "ACTIVE";

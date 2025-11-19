@@ -6,12 +6,16 @@ import com.user_service.user_service.client.RoleClient;
 import com.user_service.user_service.dto.UserRequestDto;
 import com.user_service.user_service.dto.UserResponseDto;
 import com.user_service.user_service.entity.User;
+import com.user_service.user_service.exception.ResourceNotFoundException;
+import com.user_service.user_service.mapper.UserMapper;
 import com.user_service.user_service.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 
@@ -31,109 +35,51 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public UserResponseDto createUser(UserRequestDto userRequestDto) {
-        // Hash the password
-        String hashedPassword = passwordEncoder.encode(userRequestDto.getPassword());
-
-        // Convert DTO to Entity
-        User entity = User.builder()
-                .firstName(userRequestDto.getFirstName())
-                .middleName(userRequestDto.getMiddleName())
-                .lastName(userRequestDto.getLastName())
-                .email(userRequestDto.getEmail())
-                .orgId(userRequestDto.getOrgId())
-                .groupId(userRequestDto.getGroupId())
-                .roleId(userRequestDto.getRoleId())
-                .contactNo(userRequestDto.getContactNo())
-                .password(hashedPassword)
-                .status("ACTIVE")
-                .build();
-
-        // Save entity
-        entity = userRepository.save(entity);
-
-        // Convert back to DTO (without password)
-
-        return UserResponseDto.builder()
-                .userId(entity.getUserId()) // include ID for URI
-                .firstName(entity.getFirstName())
-                .middleName(entity.getMiddleName())
-                .lastName(entity.getLastName())
-                .email(entity.getEmail())
-                .orgId(entity.getOrgId())
-                .groupId(entity.getGroupId())
-                .roleId(entity.getRoleId())
-                .contactNo(entity.getContactNo())
-                .status(entity.getStatus())
-                .build();
-
-    }
-
-
-
-    @Override
-    public List<UserResponseDto> getAllUsers() {
-        return userRepository.findAll().stream()
-                .map(this::mapToResponse)
-                .toList();
-    }
-
-    @Override
-    public UserResponseDto updateUser(Long userId, UserRequestDto userRequestDto) {
-        User entity = userRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-
-        entity.setFirstName(userRequestDto.getFirstName());
-        entity.setMiddleName(userRequestDto.getMiddleName());
-        entity.setLastName(userRequestDto.getLastName());
-        entity.setEmail(userRequestDto.getEmail());
-        entity.setOrgId(userRequestDto.getOrgId());
-        entity.setGroupId(userRequestDto.getGroupId());
-        entity.setRoleId(userRequestDto.getRoleId());
-        entity.setContactNo(userRequestDto.getContactNo());
-
-        if (userRequestDto.getPassword() != null && !userRequestDto.getPassword().isBlank()) {
-            entity.setPassword(passwordEncoder.encode(userRequestDto.getPassword()));
-        }
-
-        entity = userRepository.save(entity);
-        return mapToResponse(entity);
-    }
-
-    @Override
-    public void deleteUser(Long userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
-        }
-        userRepository.deleteById(userId);
+    public Mono<UserResponseDto> createUser(UserRequestDto userRequestDto) {
+        User entity = UserMapper.toEntity(userRequestDto);
+        return userRepository.save(entity)
+                .map(UserMapper::toResponse);
     }
 
 
     @Override
-    public UserResponseDto getUserById(Long userId) {
-        User entity = userRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        return mapToResponse(entity);
+    public Flux<UserResponseDto> getAllUsers() {
+        return userRepository.findAll()
+                .map(UserMapper::toResponse);
     }
 
 
-    private UserResponseDto mapToResponse(User entity) {
-        return UserResponseDto.builder()
-                .userId(entity.getUserId())
-                .firstName(entity.getFirstName())
-                .middleName(entity.getMiddleName())
-                .lastName(entity.getLastName())
-                .email(entity.getEmail())
-                .orgId(entity.getOrgId())
-                .groupId(entity.getGroupId())
-                .roleId(entity.getRoleId())
-                .contactNo(entity.getContactNo())
-                .lastLogin(entity.getLastLogin())
-                .status(entity.getStatus())
-                .createdAt(entity.getCreatedAt())
-                .updatedAt(entity.getUpdatedAt())
-                .build();
+    @Override
+    public Mono<UserResponseDto> updateUser(Long userId, UserRequestDto userRequestDto) {
+        return userRepository.findById(userId)
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("User not found")))
+                .flatMap(entity -> {
+                    UserMapper.updateEntity(entity, userRequestDto);
+                    return userRepository.save(entity);
+                })
+                .map(UserMapper::toResponse);
     }
+
+
+    @Override
+    public Mono<Void> deleteUser(Long userId) {
+        return userRepository.existsById(userId)
+                .flatMap(exists -> {
+                    if (!exists) {
+                        return Mono.error(new ResourceNotFoundException("User not found"));
+                    }
+                    return userRepository.deleteById(userId);
+                });
+    }
+
+
+    @Override
+    public Mono<UserResponseDto> getUserById(Long userId) {
+        return userRepository.findById(userId)
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("User not found")))
+                .map(UserMapper::toResponse);
+    }
+
 
 
 }

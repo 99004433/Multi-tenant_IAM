@@ -26,6 +26,7 @@ public class UserRequestDto {
 
     private Long groupId;
     private Long roleId;
+    private String role;
 
     private String contactNo;
     private String password;
