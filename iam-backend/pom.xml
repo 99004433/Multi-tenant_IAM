@@ -13,18 +13,32 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.7</version>
+		<version>3.3.4</version>
 		<relativePath /> <!-- lookup from repository -->
 	</parent>
-	
+
 	<modules>
-        <module>group-service</module>
-        <module>organization-service</module>
-        <module>role-service</module>
-        <module>user-service</module>
-    </modules>
-    
-    <properties>
-        <java.version>21</java.version>
-    </properties>
+		<module>group-service</module>
+		<module>organization-service</module>
+		<module>role-service</module>
+		<module>user-service</module>
+	</modules>
+
+	<properties>
+		<java.version>21</java.version>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<!-- Spring Cloud BOM for Feign and other integrations -->
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>2023.0.5</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 </project>
