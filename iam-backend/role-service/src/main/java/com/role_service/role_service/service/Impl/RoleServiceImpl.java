@@ -1,7 +1,6 @@
 package com.role_service.role_service.service.Impl;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 import org.springframework.stereotype.Service;
 
@@ -14,6 +13,8 @@ import com.role_service.role_service.repository.RoleRepository;
 import com.role_service.role_service.service.RoleService;
 
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
@@ -23,35 +24,47 @@ public class RoleServiceImpl implements RoleService {
     private final RoleMapper mapper;
 
     @Override
-    public RoleResponseDTO create(RoleRequestDTO request) {
+    public Mono<RoleResponseDTO> create(RoleRequestDTO request) {
         Role r = mapper.toEntity(request);
         r.setCreatedAt(LocalDateTime.now());
         r.setUpdatedAt(LocalDateTime.now());
-        return mapper.toResponse(repo.save(r));
+        return repo.save(r)
+                   .map(mapper::toResponse);
     }
 
     @Override
-    public RoleResponseDTO update(Long id, RoleRequestDTO request) {
-        Role role = repo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Role not found: " + id));
-        mapper.updateEntity(role, request);
-        role.setUpdatedAt(LocalDateTime.now());
-        return mapper.toResponse(repo.save(role));
+    public Mono<RoleResponseDTO> update(Long id, RoleRequestDTO request) {
+        return repo.findById(id)
+                   .switchIfEmpty(Mono.error(new ResourceNotFoundException("Role not found: " + id)))
+                   .flatMap(existing -> {
+                       mapper.updateEntity(existing, request);
+                       existing.setUpdatedAt(LocalDateTime.now());
+                       return repo.save(existing);
+                   })
+                   .map(mapper::toResponse);
     }
 
     @Override
-    public RoleResponseDTO getById(Long id) {
-        return repo.findById(id).map(mapper::toResponse)
-                .orElseThrow(() -> new ResourceNotFoundException("Role not found: " + id));
+    public Mono<RoleResponseDTO> getById(Long id) {
+        return repo.findById(id)
+                   .switchIfEmpty(Mono.error(new ResourceNotFoundException("Role not found: " + id)))
+                   .map(mapper::toResponse);
     }
 
     @Override
-    public List<RoleResponseDTO> getAll() {
-        return repo.findAll().stream().map(mapper::toResponse).toList();
+    public Flux<RoleResponseDTO> getAll() {
+        return repo.findAll()
+                   .map(mapper::toResponse);
     }
 
     @Override
-    public void delete(Long id) {
-        if(!repo.existsById(id)) throw new ResourceNotFoundException("Role not found: " + id);
-        repo.deleteById(id);
+    public Mono<Void> delete(Long id) {
+        return repo.existsById(id)
+                   .flatMap(exists -> {
+                       if (!exists) {
+                           return Mono.error(new ResourceNotFoundException("Role not found: " + id));
+                       }
+                       return repo.deleteById(id);
+                   });
     }
 }

@@ -2,7 +2,6 @@ package com.organization_service.organization_service.dto;
 
 import java.time.LocalDateTime;
 
-import org.hibernate.annotations.UpdateTimestamp;
 
 import lombok.Builder;
 import lombok.Data;

@@ -3,50 +3,53 @@ package com.role_service.role_service.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.role_service.role_service.dto.RoleRequestDTO;
 import com.role_service.role_service.dto.RoleResponseDTO;
 import com.role_service.role_service.service.RoleService;
 
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/api/roles")
 @RequiredArgsConstructor
 public class RoleController {
+
     private final RoleService service;
 
     @PostMapping
-    public ResponseEntity<RoleResponseDTO> create(@RequestBody RoleRequestDTO req) {
-        return ResponseEntity.status(201).body(service.create(req));
+    public Mono<ResponseEntity<RoleResponseDTO>> create(@RequestBody RoleRequestDTO req) {
+        return service.create(req)
+                      .map(dto -> ResponseEntity.status(201).body(dto));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<RoleResponseDTO> get(@PathVariable Long id) {
-        return ResponseEntity.ok(service.getById(id));
+    public Mono<ResponseEntity<RoleResponseDTO>> get(@PathVariable Long id) {
+        return service.getById(id)
+                      .map(ResponseEntity::ok)
+                      .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
     @GetMapping
-    public ResponseEntity<List<RoleResponseDTO>> all() {
-        return ResponseEntity.ok(service.getAll());
+    public Mono<ResponseEntity<List<RoleResponseDTO>>> all() {
+        return service.getAll()
+                      .collectList()
+                      .map(ResponseEntity::ok);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<RoleResponseDTO> update(@PathVariable Long id, @RequestBody RoleRequestDTO req) {
-        return ResponseEntity.ok(service.update(id, req));
+    public Mono<ResponseEntity<RoleResponseDTO>> update(@PathVariable Long id, @RequestBody RoleRequestDTO req) {
+        return service.update(id, req)
+                      .map(ResponseEntity::ok)
+                      .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        service.delete(id);
-        return ResponseEntity.noContent().build();
+    public Mono<ResponseEntity<Void>> delete(@PathVariable Long id) {
+        return service.delete(id)
+                      .thenReturn(ResponseEntity.noContent().build());
     }
 }

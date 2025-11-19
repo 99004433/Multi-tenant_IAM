@@ -1,20 +1,19 @@
 package com.organization_service.organization_service.service;
 
-import java.util.List;
-
 import com.organization_service.organization_service.dto.OrgRequestDTO;
 import com.organization_service.organization_service.dto.OrgResponseDTO;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 public interface OrganizationService {
 
-	OrgResponseDTO create(OrgRequestDTO request);
+    Mono<OrgResponseDTO> create(OrgRequestDTO request);
 
-	OrgResponseDTO update(Long orgId, OrgRequestDTO request);
+    Mono<OrgResponseDTO> update(Long orgId, OrgRequestDTO request);
 
-	OrgResponseDTO getById(Long orgId);
+    Mono<OrgResponseDTO> getById(Long orgId);
 
-	List<OrgResponseDTO> getAll();
+    Flux<OrgResponseDTO> getAll();
 
-	void delete(Long orgId);
-
+    Mono<Void> delete(Long orgId);
 }

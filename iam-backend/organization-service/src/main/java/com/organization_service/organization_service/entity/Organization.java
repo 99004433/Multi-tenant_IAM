@@ -2,47 +2,63 @@ package com.organization_service.organization_service.entity;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Table;
+import org.springframework.data.relational.core.mapping.Column;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Entity
-@Table(name = "organization")
+@Table("organization") // R2DBC table mapping
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Organization {
-	@Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id
     private Long orgId;
 
-    @Column(nullable = false)
+    @Column("name")
     private String name;
 
+    @Column("parent_org_id")
     private Long parentOrgId;
-    private Integer level;
-    private String address;
-    private String status; // ACTIVE / INACTIVE
 
-    // GPS/autofill fields
+    @Column("level")
+    private Integer level;
+
+    @Column("address")
+    private String address;
+
+    @Column("status")
+    private String status;
+
+    @Column("latitude")
     private Double latitude;
+
+    @Column("longitude")
     private Double longitude;
+
+    @Column("region")
     private String region;
+
+    @Column("country")
     private String country;
+
+    @Column("state")
     private String state;
+
+    @Column("city")
     private String city;
 
+    @Column("created_at")
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
+    @Column("updated_at")
+    private LocalDateTime updatedAt;
 }
