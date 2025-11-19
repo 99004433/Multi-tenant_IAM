@@ -1,10 +1,12 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
-import Button from "./components/Button";
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import App from './App';
 
-ReactDOM.createRoot(document.getElementById("root")).render(
+ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <h2>Common MFE Running</h2>
-    <Button />
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
   </React.StrictMode>
 );
