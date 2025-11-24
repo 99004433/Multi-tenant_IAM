@@ -4,8 +4,6 @@ import { Routes, Route } from 'react-router-dom';
 // Local components in common
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
-import ProtectedRoute from './components/ProtectedRoute';
-import RoleProtectedRoute from './components/RoleProtectedRoute';
 import AuthPage from './components/AuthPage';
 import Home from './pages/Home';
 import HospitalDetails from './components/HospitalDetails';

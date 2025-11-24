@@ -22,6 +22,8 @@
 		<module>organization-service</module>
 		<module>role-service</module>
 		<module>user-service</module>
+		<module>eureka-service</module>
+		<module>api-gateway</module>
 	</modules>
 
 	<properties>

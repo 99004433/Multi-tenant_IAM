@@ -1,8 +1,6 @@
 package com.user_service.user_service.service;
 
-import com.user_service.user_service.client.GroupClient;
-import com.user_service.user_service.client.OrganzationClient;
-import com.user_service.user_service.client.RoleClient;
+
 import com.user_service.user_service.dto.UserRequestDto;
 import com.user_service.user_service.dto.UserResponseDto;
 import com.user_service.user_service.entity.User;
@@ -24,12 +22,7 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRepository userRepository;
-    @Autowired
-    private GroupClient groupClient;
-    @Autowired
-    private RoleClient roleClient;
-    @Autowired
-    private OrganzationClient orgClient;
+   
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 

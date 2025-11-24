@@ -3,6 +3,7 @@ package com.organization_service.organization_service.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,21 +13,25 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.organization_service.organization_service.dto.OrgHierarchyDTO;
 import com.organization_service.organization_service.dto.OrgRequestDTO;
 import com.organization_service.organization_service.dto.OrgResponseDTO;
+import com.organization_service.organization_service.exception.ResourceNotFoundException;
 import com.organization_service.organization_service.service.OrganizationService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
+@CrossOrigin(origins = "http://localhost:5000")
 @RestController
 @RequestMapping("/api/organizations")
 @RequiredArgsConstructor
 public class OrganizationController {
 
     private final OrganizationService service;
-
+    
+    
     @PostMapping
     public Mono<ResponseEntity<OrgResponseDTO>> create(@Valid @RequestBody OrgRequestDTO req) {
         return service.create(req)
@@ -60,4 +65,10 @@ public class OrganizationController {
         return service.delete(id)
                       .thenReturn(ResponseEntity.ok("Deleted successfully with ID: " + id));
     }
-}
+    @GetMapping("/{id}/hierarchy")
+    public Mono<ResponseEntity<OrgHierarchyDTO>> getHierarchy(@PathVariable Long id) {
+        return service.getHierarchy(id)
+                      .map(ResponseEntity::ok)
+                      .onErrorResume(ResourceNotFoundException.class,
+                          e -> Mono.just(ResponseEntity.notFound().build()));
+    }}

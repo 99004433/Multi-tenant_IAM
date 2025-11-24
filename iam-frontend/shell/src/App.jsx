@@ -11,7 +11,7 @@ const Home = React.lazy(() => import('common/Home'));
 const HospitalDetails = React.lazy(() => import('common/HospitalDetails'));
 
 // Local pages from shell
-import Orgs from './components/orgs/Orgs';
+import Organizations from './components/organizations';
 import Group from './components/group/Group';
 import Users from './components/users/Users';
 import Roles from './components/roles/Roles';
@@ -25,7 +25,7 @@ import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 
 const menuItems = [
   { label: 'Home', path: '/', icon: <HomeIcon /> },
-  { label: 'Orgs', path: '/orgs', icon: <PublicIcon /> },
+  { label: 'Organizations', path: '/Organizations', icon: <PublicIcon /> },
   { label: 'Group', path: '/group', icon: <GroupIcon /> },
   { label: 'Users', path: '/users', icon: <PersonIcon /> },
   { label: 'Roles', path: '/roles', icon: <AdminPanelSettingsIcon /> },
@@ -62,7 +62,7 @@ export default function App() {
           <Suspense fallback={<div>Loading Routes...</div>}>
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/orgs" element={<ProtectedRoute><Orgs /></ProtectedRoute>} />
+              <Route path="/Organizations" element={<ProtectedRoute><Organizations /></ProtectedRoute>} />
               <Route path="/group" element={<ProtectedRoute><Group /></ProtectedRoute>} />
               <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
               <Route path="/roles" element={
