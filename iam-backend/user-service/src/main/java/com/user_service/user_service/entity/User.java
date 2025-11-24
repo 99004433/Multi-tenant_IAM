@@ -14,9 +14,8 @@ import java.time.LocalDateTime;
 public class User {
 	@Id
 	private Long userId;
-	private Long orgId;
-	private Long groupId;
-	private Long roleId;
+	private String organization;
+	private String groupName;
 	private String role;
 	private String email;
 	private String contactNo;

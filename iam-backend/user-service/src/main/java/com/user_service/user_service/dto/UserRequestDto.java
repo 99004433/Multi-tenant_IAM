@@ -22,10 +22,9 @@ public class UserRequestDto {
     private String email;
 
     @NotNull(message = "Organization ID is required")
-    private Long orgId;
+    private String organization;
 
-    private Long groupId;
-    private Long roleId;
+    private String groupName;
     private String role;
 
     private String contactNo;

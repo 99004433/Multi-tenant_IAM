@@ -16,9 +16,8 @@ public class UserMapper {
                 .middleName(dto.getMiddleName())
                 .lastName(dto.getLastName())
                 .email(dto.getEmail())
-                .orgId(dto.getOrgId())
-                .groupId(dto.getGroupId())
-                .roleId(dto.getRoleId())
+                .organization(dto.getOrganization())
+                .groupName(dto.getGroupName())
                 .role(dto.getRole())
                 .contactNo(dto.getContactNo())
                 .password(passwordEncoder.encode(dto.getPassword()))
@@ -27,16 +26,14 @@ public class UserMapper {
     }
 
     public static void updateEntity(User entity, UserRequestDto dto) {
-        entity.setFirstName(dto.getFirstName());
-        entity.setMiddleName(dto.getMiddleName());
-        entity.setLastName(dto.getLastName());
-        entity.setEmail(dto.getEmail());
-        entity.setOrgId(dto.getOrgId());
-        entity.setGroupId(dto.getGroupId());
-        entity.setRoleId(dto.getRoleId());
-        entity.setRole(dto.getRole());
-        entity.setContactNo(dto.getContactNo());
-
+        if (dto.getFirstName() != null) entity.setFirstName(dto.getFirstName());
+        if (dto.getMiddleName() != null) entity.setMiddleName(dto.getMiddleName());
+        if (dto.getLastName() != null) entity.setLastName(dto.getLastName());
+        if (dto.getEmail() != null) entity.setEmail(dto.getEmail());
+        if (dto.getOrganization() != null) entity.setOrganization(dto.getOrganization());
+        if (dto.getGroupName() != null) entity.setGroupName(dto.getGroupName());
+        if (dto.getRole() != null) entity.setRole(dto.getRole());
+        if (dto.getContactNo() != null) entity.setContactNo(dto.getContactNo());
         if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
             entity.setPassword(passwordEncoder.encode(dto.getPassword()));
         }
@@ -49,10 +46,10 @@ public class UserMapper {
                 .middleName(entity.getMiddleName())
                 .lastName(entity.getLastName())
                 .email(entity.getEmail())
-                .orgId(entity.getOrgId())
-                .groupId(entity.getGroupId())
-                .roleId(entity.getRoleId())
+                .organization(entity.getOrganization())
+                .groupName(entity.getGroupName())
                 .role(entity.getRole())
+                .password(passwordEncoder.encode(entity.getPassword()))
                 .contactNo(entity.getContactNo())
                 .lastLogin(entity.getLastLogin())
                 .status(entity.getStatus())

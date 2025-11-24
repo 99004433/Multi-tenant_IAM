@@ -16,15 +16,14 @@ public class UserResponseDto {
     private String lastName;
     private String email;
 
-    private Long orgId;   // from organization-service
+    private String organization;   // from organization-service
 
-    private Long groupId; // from group-service
-    private Long roleId;  // from role-service
+    private String groupName; // from group-service
     private String role;
     private String contactNo;
     private LocalDateTime lastLogin;
-    private String status = "ACTIVE";
-
+    private String status;
+    private String password;
 
     private LocalDateTime createdAt;
 
