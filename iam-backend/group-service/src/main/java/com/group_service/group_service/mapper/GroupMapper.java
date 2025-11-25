@@ -34,6 +34,5 @@ public class GroupMapper {
         entity.setName(dto.getName());
         entity.setDescription(dto.getDescription());
         entity.setAllowedRoleIds(dto.getAllowedRoleIds());
-        // Keep status unchanged unless explicitly updated
     }
 }

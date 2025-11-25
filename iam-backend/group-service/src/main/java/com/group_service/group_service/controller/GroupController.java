@@ -6,7 +6,6 @@ import com.group_service.group_service.entity.Group;
 import com.group_service.group_service.exception.GroupNotFoundException;
 import com.group_service.group_service.service.GroupService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -41,23 +40,18 @@ public class GroupController {
                 .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
     }
 
-
-//    @DeleteMapping("deleteById/{id}")
-//    public Mono<Void> deleteGroup(@PathVariable Long id) {
-//        return groupService.deleteGroupById(id);
-//    }
-@DeleteMapping("deleteById/{id}")
-public Mono<Void> deleteGroup(@PathVariable Long id) {
-    return groupService.deleteGroupById(id)
-            .onErrorResume(GroupNotFoundException.class, ex -> {
-                // Re-throw or convert to a proper error signal
-                return Mono.error(new GroupNotFoundException("Group with ID " + id + " not found"));
-            })
-            .onErrorResume(Exception.class, ex -> {
-                // For any other exception
-                return Mono.error(new RuntimeException("Failed to delete group: " + ex.getMessage()));
-            });
-}
+    @DeleteMapping("deleteById/{id}")
+    public Mono<Void> deleteGroup(@PathVariable Long id) {
+        return groupService.deleteGroupById(id)
+                .onErrorResume(GroupNotFoundException.class, ex -> {
+                    // Re-throw or convert to a proper error signal
+                    return Mono.error(new GroupNotFoundException("Group with ID " + id + " not found"));
+                })
+                .onErrorResume(Exception.class, ex -> {
+                    // For any other exception
+                    return Mono.error(new RuntimeException("Failed to delete group: " + ex.getMessage()));
+                });
+    }
 
     @GetMapping
     public Flux<Group> getAllGroups() {

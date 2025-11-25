@@ -6,6 +6,7 @@ import com.user_service.user_service.entity.User;
 import com.user_service.user_service.exception.ResourceNotFoundException;
 import com.user_service.user_service.mapper.UserMapper;
 import com.user_service.user_service.repository.UserRepository;
+import com.user_service.user_service.util.PasswordUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,9 +15,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Comparator;
 
 @Slf4j
 @Service
@@ -24,17 +26,13 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private EmailService emailService;
+
 
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
-
-//    @Override
-//    public Mono<UserResponseDto> createUser(UserRequestDto userRequestDto) {
-//        User entity = UserMapper.toEntity(userRequestDto);
-//        return userRepository.save(entity)
-//                .map(UserMapper::toResponse);
-//    }
+    
     /**
      * Create a new user.
      * - checks duplicate email
@@ -46,56 +44,65 @@ public class UserServiceImpl implements UserService {
     public Mono<UserResponseDto> createUser(UserRequestDto dto) {
         log.info("Attempting to create user with email={}", dto.getEmail());
 
+        String normalizedEmail = dto.getEmail().trim().toLowerCase();
+
         // ensure email uniqueness
-        return userRepository.existsByEmail(dto.getEmail())
+        return userRepository.existsByEmail(normalizedEmail)
                 .flatMap(exists -> {
                     if (Boolean.TRUE.equals(exists)) {
                         log.warn("User creation failed: email already exists={}", dto.getEmail());
                         return Mono.error(new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists"));
                     }
 
-                    // map dto to entity (mapper returns raw password)
+                    // map dto to entity
                     User entity = UserMapper.toEntity(dto);
 
-                    // hash password in service layer (only once)
-//                    entity.setPassword(passwordEncoder.encode(entity.getPassword()));
+                    // determine raw password once
+                    final String rawPassword =
+                            (dto.getPassword() == null || dto.getPassword().isBlank())
+                                    ? PasswordUtil.generateRandomPassword(12)
+                                    : dto.getPassword();
 
-                    // set createdAt only; do not set updatedAt here so DB default controls it
+                    // set createdAt only
                     entity.setCreatedAt(LocalDateTime.now());
 
-                    // default status on creation
-//                    entity.setStatus("ACTIVE");
-
                     log.debug("Saving new user (email={}) to repository", dto.getEmail());
-                    return userRepository.save(entity);
-                })
-                .map(saved -> {
-                    log.info("User created successfully: id={} email={}", saved.getUserId(), saved.getEmail());
-                    return UserMapper.toResponse(saved);
+
+                    return userRepository.save(entity)
+                            .flatMap(saved ->
+                                    // send email asynchronously
+                                    Mono.fromCallable(() -> {
+                                                emailService.sendUserCreatedEmail(
+                                                        saved.getEmail(),
+                                                        saved.getEmail(),
+                                                        rawPassword
+                                                );
+                                                return saved;
+                                            })
+                                            .subscribeOn(Schedulers.boundedElastic())
+                                            .onErrorResume(e -> {
+                                                log.error("Failed to send email to {}: {}", saved.getEmail(), e.getMessage());
+                                                return Mono.just(saved); // continue even if email fails
+                                            })
+                            )
+                            .map(saved -> {
+                                log.info("User created successfully: id={} email={}", saved.getUserId(), saved.getEmail());
+                                return UserMapper.toResponse(saved);
+                            });
                 });
     }
 
-    // other service methods (getAll/getById/update/delete) implemented elsewhere...
+
 
 
 
     @Override
     public Flux<UserResponseDto> getAllUsers() {
         return userRepository.findAll()
-                .map(UserMapper::toResponse);
+                .map(UserMapper::toResponse)
+                .sort(Comparator.comparing(UserResponseDto::getUserId));
     }
 
-
-//    @Override
-//    public Mono<UserResponseDto> updateUser(Long userId, UserRequestDto userRequestDto) {
-//        return userRepository.findById(userId)
-//                .switchIfEmpty(Mono.error(new ResourceNotFoundException("User not found")))
-//                .flatMap(entity -> {
-//                    UserMapper.updateEntity(entity, userRequestDto);
-//                    return userRepository.save(entity);
-//                })
-//                .map(UserMapper::toResponse);
-//    }
     @Override
     public Mono<UserResponseDto> updateUser(Long id, UserRequestDto dto) {
         return userRepository.findById(id)

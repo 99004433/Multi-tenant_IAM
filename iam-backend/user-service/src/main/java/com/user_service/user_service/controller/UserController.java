@@ -21,12 +21,6 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-
-//    @PostMapping("/save")
-//    public Mono<ResponseEntity<UserResponseDto>> create(@Valid @RequestBody UserRequestDto req) {
-//        return userService.createUser(req)
-//                .map(created -> ResponseEntity.status(HttpStatus.CREATED).body(created));
-//    }
     /**
      * POST /api/users
      * Create a new user.
@@ -53,11 +47,7 @@ public class UserController {
         return userService.getAllUsers();
     }
 
-//    @PutMapping("/updateUser/{id}")
-//    public Mono<ResponseEntity<UserResponseDto>> update(@PathVariable Long id, @Valid @RequestBody UserRequestDto req) {
-//        return userService.updateUser(id, req)
-//                .map(ResponseEntity::ok);
-//    }
+
     @PutMapping("/updateUser/{id}")
     public Mono<ResponseEntity<UserResponseDto>> update(
             @PathVariable("id") Long id,
