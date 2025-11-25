@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 
-// Remote components from common
+// Remote components
 const Sidebar = React.lazy(() => import('common/Sidebar'));
 const Header = React.lazy(() => import('common/Header'));
 const ProtectedRoute = React.lazy(() => import('common/ProtectedRoute'));
@@ -10,13 +10,14 @@ const AuthPage = React.lazy(() => import('common/AuthPage'));
 const Home = React.lazy(() => import('common/Home'));
 const HospitalDetails = React.lazy(() => import('common/HospitalDetails'));
 
-// Local pages from shell
+// Local pages
 import Organizations from './components/organizations';
-import Group from './components/group/Group';
+import GroupList from './components/group/GroupList';
+import GroupForm from './components/group/GroupForm';
 import Users from './components/users/Users';
-import Roles from './components/roles/Roles';
+import Roles from './components/roles/RolesPage';
 
-// Menu items for Sidebar
+// Sidebar menu items
 import HomeIcon from '@mui/icons-material/Home';
 import PublicIcon from '@mui/icons-material/Public';
 import GroupIcon from '@mui/icons-material/Group';
@@ -49,21 +50,39 @@ export default function App() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+      {/* ✅ Fixed Main Header */}
       <Suspense fallback={<div>Loading Header...</div>}>
-        <Header toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: sidebarOpen ? '240px' : '60px',
+          right: 0,
+          height: '60px',
+          backgroundColor: '#fff',
+          zIndex: 1000,
+          borderBottom: '1px solid #ddd',
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 20px'
+        }}>
+          <Header toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+        </div>
       </Suspense>
 
-      <div style={{ display: 'flex', flex: 1 }}>
+      <div style={{ display: 'flex', flex: 1, marginTop: '60px' }}>
+        {/* Sidebar */}
         <Suspense fallback={<div>Loading Sidebar...</div>}>
           <Sidebar menuItems={menuItems} open={sidebarOpen} />
         </Suspense>
 
-        <div style={{ flex: 1, paddingTop: '64px', overflow: 'auto' }}>
+        <div style={{ flex: 1, padding: '20px', paddingTop: '80px' }}>
           <Suspense fallback={<div>Loading Routes...</div>}>
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/Organizations" element={<ProtectedRoute><Organizations /></ProtectedRoute>} />
-              <Route path="/group" element={<ProtectedRoute><Group /></ProtectedRoute>} />
+              <Route path="/group" element={<ProtectedRoute><GroupList /></ProtectedRoute>} />
+              <Route path="/group/add" element={<ProtectedRoute><GroupForm /></ProtectedRoute>} />
+              <Route path="/group/edit/:id" element={<ProtectedRoute><GroupForm /></ProtectedRoute>} />
               <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
               <Route path="/roles" element={
                 <RoleProtectedRoute allowedRoles={['admin']}>
