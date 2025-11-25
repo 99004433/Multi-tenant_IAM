@@ -16,8 +16,11 @@ public class OrganizationMapper {
                 .level(r.getLevel())
                 .address(r.getAddress())
                 .status(r.getStatus())
-                .latitude(r.getLatitude())
-                .longitude(r.getLongitude())
+                .region(r.getRegion())
+                .country(r.getCountry())
+                .state(r.getState())
+                .city(r.getCity())
+                .zipcode(r.getZipcode())
                 .build();
     }
 
@@ -29,12 +32,11 @@ public class OrganizationMapper {
                 .level(e.getLevel())
                 .address(e.getAddress())
                 .status(e.getStatus())
-                .latitude(e.getLatitude())
-                .longitude(e.getLongitude())
                 .region(e.getRegion())
                 .country(e.getCountry())
                 .state(e.getState())
                 .city(e.getCity())
+                .zipcode(e.getZipcode())
                 .createdAt(e.getCreatedAt())
                 .updatedAt(e.getUpdatedAt())
                 .build();
@@ -46,8 +48,10 @@ public class OrganizationMapper {
         e.setLevel(r.getLevel());
         if (r.getAddress() != null) e.setAddress(r.getAddress());
         if (r.getStatus() != null) e.setStatus(r.getStatus());
-        if (r.getLatitude() != null) e.setLatitude(r.getLatitude());
-        if (r.getLongitude() != null) e.setLongitude(r.getLongitude());
-        // geocoding update performed elsewhere if lat/lng changed
+        if (r.getRegion() != null) e.setRegion(r.getRegion());
+        if (r.getCountry() != null) e.setCountry(r.getCountry());
+        if (r.getState() != null) e.setState(r.getState());
+        if (r.getCity() != null) e.setCity(r.getCity());
+        if (r.getZipcode() != null) e.setZipcode(r.getZipcode());
     }
 }

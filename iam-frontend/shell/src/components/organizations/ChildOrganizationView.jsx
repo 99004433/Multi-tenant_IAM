@@ -1,4 +1,4 @@
-// src/components/organizations/OrganizationList.jsx
+// src/components/organizations/ChildOrganizationView.jsx
 import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import {
@@ -17,6 +17,8 @@ import {
   Box,
   Typography,
   Select,
+  Breadcrumbs,
+  Link,
   Paper,
   Table,
   TableBody,
@@ -35,9 +37,10 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
-import BusinessIcon from "@mui/icons-material/Business";
+import LocationCityIcon from "@mui/icons-material/LocationCity";
 import AddressAutocomplete from "./AddressAutocomplete";
 
 const api = axios.create({
@@ -45,12 +48,12 @@ const api = axios.create({
   timeout: 15000,
 });
 
-export default function OrganizationList({ onViewChildren }) {
+export default function ChildOrganizationView({ parentOrg, onBack, onViewGrandchildren }) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
 
-  const [organizations, setOrganizations] = useState([]);
+  const [childOrgs, setChildOrgs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -73,24 +76,23 @@ export default function OrganizationList({ onViewChildren }) {
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const visibleOrgs = useMemo(() => {
     const q = (search || "").trim().toLowerCase();
-    let list = organizations.filter((org) => org.level === 0 || org.level === null);
+    let list = childOrgs;
     if (q) {
       list = list.filter((org) => {
         return (
           (org.name || "").toLowerCase().includes(q) ||
           (org.address || "").toLowerCase().includes(q) ||
           (org.city || "").toLowerCase().includes(q) ||
-          (org.state || "").toLowerCase().includes(q) ||
-          (org.country || "").toLowerCase().includes(q)
+          (org.state || "").toLowerCase().includes(q)
         );
       });
     }
     return list;
-  }, [organizations, search]);
+  }, [childOrgs, search]);
 
   const pagedOrgs = useMemo(() => {
     const start = page * rowsPerPage;
@@ -98,16 +100,18 @@ export default function OrganizationList({ onViewChildren }) {
   }, [visibleOrgs, page, rowsPerPage]);
 
   useEffect(() => {
-    loadOrganizations();
-  }, []);
+    loadChildOrganizations();
+  }, [parentOrg]);
 
-  const loadOrganizations = async () => {
+  const loadChildOrganizations = async () => {
     setLoading(true);
     try {
       const res = await api.get("");
-      setOrganizations(Array.isArray(res.data) ? res.data : []);
+      const allOrgs = Array.isArray(res.data) ? res.data : [];
+      const children = allOrgs.filter((org) => org.parentOrgId === parentOrg.orgId && org.level === 1);
+      setChildOrgs(children);
     } catch (err) {
-      setSnackbar({ open: true, message: "Failed to load organizations", severity: "error" });
+      setSnackbar({ open: true, message: "Failed to load child organizations", severity: "error" });
     } finally {
       setLoading(false);
     }
@@ -147,8 +151,8 @@ export default function OrganizationList({ onViewChildren }) {
     try {
       const payload = {
         name: formData.name,
-        parentOrgId: null,
-        level: 0,
+        parentOrgId: parentOrg.orgId,
+        level: 1,
         address: formData.address,
         status: formData.status,
         region: formData.region || null,
@@ -160,12 +164,12 @@ export default function OrganizationList({ onViewChildren }) {
 
       if (formData.orgId) {
         const res = await api.put(`/${formData.orgId}`, payload);
-        setOrganizations((prev) => prev.map((o) => (o.orgId === formData.orgId ? res.data : o)));
-        setSnackbar({ open: true, message: "Organization updated successfully", severity: "success" });
+        setChildOrgs((prev) => prev.map((o) => (o.orgId === formData.orgId ? res.data : o)));
+        setSnackbar({ open: true, message: "Child organization updated successfully", severity: "success" });
       } else {
         const res = await api.post("", payload);
-        setOrganizations((prev) => [...prev, res.data]);
-        setSnackbar({ open: true, message: "Organization created successfully", severity: "success" });
+        setChildOrgs((prev) => [...prev, res.data]);
+        setSnackbar({ open: true, message: "Child organization created successfully", severity: "success" });
       }
       setOpen(false);
       resetForm();
@@ -218,8 +222,8 @@ export default function OrganizationList({ onViewChildren }) {
     if (!id) return;
     try {
       await api.delete(`/${id}`);
-      setOrganizations((p) => p.filter((o) => o.orgId !== id));
-      setSnackbar({ open: true, message: "Organization deleted successfully", severity: "success" });
+      setChildOrgs((p) => p.filter((o) => o.orgId !== id));
+      setSnackbar({ open: true, message: "Child organization deleted successfully", severity: "success" });
     } catch (err) {
       const msg = err.response?.data?.message || err.message || "Delete failed";
       setSnackbar({ open: true, message: msg, severity: "error" });
@@ -238,17 +242,43 @@ export default function OrganizationList({ onViewChildren }) {
 
   return (
     <Box sx={{ width: "100%", height: "100%" }}>
+      {/* Breadcrumb Navigation */}
+      <Box sx={{ mb: 2, px: 3, pt: 2 }}>
+        <Breadcrumbs separator="›" sx={{ fontSize: { xs: "0.875rem", sm: "1rem" } }}>
+          <Link
+            component="button"
+            variant="body1"
+            onClick={onBack}
+            sx={{
+              textDecoration: "none",
+              cursor: "pointer",
+              color: "#1976d2",
+              "&:hover": { textDecoration: "underline" },
+              fontWeight: 500,
+            }}
+          >
+            Parent Organizations
+          </Link>
+          <Typography color="text.primary" fontWeight={600}>
+            {parentOrg.name}
+          </Typography>
+        </Breadcrumbs>
+      </Box>
+
       {/* Header Card */}
       <Card elevation={0} sx={{ mb: 2, borderRadius: 0, background: "linear-gradient(135deg, #1976d2 0%, #1565c0 100%)", color: "white" }}>
         <CardContent sx={{ px: 3, py: 2 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <BusinessIcon sx={{ fontSize: 40 }} />
+            <IconButton onClick={onBack} sx={{ color: "white", backgroundColor: "rgba(255,255,255,0.2)" }}>
+              <ArrowBackIcon />
+            </IconButton>
+            <LocationCityIcon sx={{ fontSize: 40 }} />
             <Box>
-              <Typography variant={isMobile ? "h5" : "h4"} fontWeight="bold">
-                Parent Organizations
+              <Typography variant={isMobile ? "h6" : "h5"} fontWeight="bold">
+                Child Organizations
               </Typography>
               <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                Manage your top-level organizational units
+                Location-based branches of {parentOrg.name}
               </Typography>
             </Box>
           </Box>
@@ -269,7 +299,7 @@ export default function OrganizationList({ onViewChildren }) {
       >
         <TextField
           size="small"
-          placeholder="Search organizations..."
+          placeholder="Search child organizations..."
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
@@ -300,7 +330,7 @@ export default function OrganizationList({ onViewChildren }) {
             boxShadow: 2,
           }}
         >
-          Add Organization
+          Add Child Organization
         </Button>
       </Box>
 
@@ -310,7 +340,7 @@ export default function OrganizationList({ onViewChildren }) {
           <Table>
           <TableHead>
             <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
-              <TableCell sx={{ fontWeight: "bold", fontSize: "0.875rem" }}>Organization Name</TableCell>
+              <TableCell sx={{ fontWeight: "bold", fontSize: "0.875rem" }}>Location Name</TableCell>
               {!isMobile && <TableCell sx={{ fontWeight: "bold", fontSize: "0.875rem" }}>Address</TableCell>}
               {!isTablet && (
                 <>
@@ -350,7 +380,7 @@ export default function OrganizationList({ onViewChildren }) {
                 )}
                 <TableCell>
                   <Chip
-                    label={`Level ${org.level ?? 0}`}
+                    label={`Level ${org.level ?? 1}`}
                     size="small"
                     color="primary"
                     variant="outlined"
@@ -367,8 +397,8 @@ export default function OrganizationList({ onViewChildren }) {
                 </TableCell>
                 <TableCell align="center">
                   <Box sx={{ display: "flex", justifyContent: "center", gap: 0.5 }}>
-                    <Tooltip title="View Child Organizations">
-                      <IconButton size="small" color="info" onClick={() => onViewChildren(org)}>
+                    <Tooltip title="View Departments">
+                      <IconButton size="small" color="info" onClick={() => onViewGrandchildren(org)}>
                         <VisibilityIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
@@ -391,7 +421,7 @@ export default function OrganizationList({ onViewChildren }) {
               <TableRow>
                 <TableCell colSpan={10} align="center" sx={{ py: 6 }}>
                   <Typography variant="body1" color="text.secondary">
-                    No parent organizations found
+                    No child organizations found
                   </Typography>
                 </TableCell>
               </TableRow>
@@ -462,7 +492,7 @@ export default function OrganizationList({ onViewChildren }) {
       {/* Add / Edit Dialog */}
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="md" fullWidth>
         <DialogTitle sx={{ backgroundColor: "#1976d2", color: "white", fontWeight: "bold" }}>
-          {formData.orgId ? "Edit Parent Organization" : "Create Parent Organization"}
+          {formData.orgId ? "Edit Child Organization" : `Add Child Organization to ${parentOrg.name}`}
         </DialogTitle>
         <form onSubmit={handleSubmit}>
           <DialogContent sx={{ mt: 2 }}>
@@ -470,12 +500,12 @@ export default function OrganizationList({ onViewChildren }) {
               <Grid item xs={12}>
                 <TextField
                   fullWidth
-                  label="Organization Name"
+                  label="Location Name"
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
                   error={!!formErrors.name}
-                  helperText={formErrors.name}
+                  helperText={formErrors.name || "e.g., Manipal Bangalore, Manipal Chennai"}
                   required
                   variant="outlined"
                 />
@@ -550,7 +580,7 @@ export default function OrganizationList({ onViewChildren }) {
       <Dialog open={confirmDeleteOpen} onClose={() => setConfirmDeleteOpen(false)}>
         <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
-          <Typography>Are you sure you want to delete this organization? This action cannot be undone.</Typography>
+          <Typography>Are you sure you want to delete this child organization? This action cannot be undone.</Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setConfirmDeleteOpen(false)}>Cancel</Button>

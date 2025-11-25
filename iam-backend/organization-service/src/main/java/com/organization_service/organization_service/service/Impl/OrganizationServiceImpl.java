@@ -68,31 +68,6 @@ public class OrganizationServiceImpl implements OrganizationService {
 		});
 	}
 
-	@Override
-	public Mono<OrgHierarchyDTO> getHierarchy(Long orgId) {
-		return repo.findById(orgId)
-				.switchIfEmpty(Mono.error(new ResourceNotFoundException("Organization not found: " + orgId)))
-				.flatMap(this::buildHierarchy).onErrorResume(e -> {
-					log.error("Failed to build hierarchy for orgId {}: {}", orgId, e.getMessage());
-					return Mono.error(new RuntimeException("Failed to build hierarchy"));
-				});
-	}
-
-	private Mono<OrgHierarchyDTO> buildHierarchy(Organization org) {
-	    OrgHierarchyDTO dto = new OrgHierarchyDTO();
-	    dto.setOrgId(org.getOrgId());
-	    dto.setName(org.getName());
-	    dto.setLevel(org.getLevel());
-	    dto.setStatus(org.getStatus());
-
-	    return repo.findByParentOrgId(org.getOrgId())
-	               .flatMap(this::buildHierarchy)
-	               .collectList()
-	               .map(children -> {
-	                   dto.setChildren(children);
-	                   return dto;
-	               })
-	               .switchIfEmpty(Mono.just(dto)); 
-	}
+	
 
 }

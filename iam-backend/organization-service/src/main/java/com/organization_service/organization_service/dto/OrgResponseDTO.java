@@ -15,12 +15,11 @@ public class OrgResponseDTO {
 	    private Integer level;
 	    private String address;
 	    private String status;
-	    private Double latitude;
-	    private Double longitude;
 	    private String region;
 	    private String country;
 	    private String state;
 	    private String city;
+	    private String zipcode;
 	    private LocalDateTime createdAt;
 	    private LocalDateTime updatedAt;
 }

@@ -1,44 +1,55 @@
-import React, { useState } from 'react';
-import {
-  Box,
-  Tabs,
-  Tab,
-  Paper,
-} from '@mui/material';
-import OrganizationList from './OrganizationList';
-import OrganizationHierarchy from './OrganizationHierarchy';
-
-function TabPanel({ children, value, index }) {
-  return (
-    <div hidden={value !== index}>
-      {value === index && <Box>{children}</Box>}
-    </div>
-  );
-}
+// src/components/organizations/index.jsx
+import React, { useState } from "react";
+import OrganizationList from "./OrganizationList";
+import ChildOrganizationView from "./ChildOrganizationView";
+import GrandchildOrganizationView from "./GrandchildOrganizationView";
 
 export default function Organizations() {
-  const [tabValue, setTabValue] = useState(0);
+  const [view, setView] = useState("parent"); // parent, child, grandchild
+  const [selectedParent, setSelectedParent] = useState(null);
+  const [selectedChild, setSelectedChild] = useState(null);
 
-  const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
+  const handleViewChildren = (parentOrg) => {
+    setSelectedParent(parentOrg);
+    setView("child");
+  };
+
+  const handleViewGrandchildren = (childOrg) => {
+    setSelectedChild(childOrg);
+    setView("grandchild");
+  };
+
+  const handleBackToParent = () => {
+    setSelectedParent(null);
+    setSelectedChild(null);
+    setView("parent");
+  };
+
+  const handleBackToChild = () => {
+    setSelectedChild(null);
+    setView("child");
   };
 
   return (
-    <Box sx={{ width: '100%' }}>
-      <Paper sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={tabValue} onChange={handleTabChange}>
-          <Tab label="Organization List" />
-          <Tab label="Hierarchy View" />
-        </Tabs>
-      </Paper>
+    <>
+      {view === "parent" && <OrganizationList onViewChildren={handleViewChildren} />}
 
-      <TabPanel value={tabValue} index={0}>
-        <OrganizationList />
-      </TabPanel>
+      {view === "child" && selectedParent && (
+        <ChildOrganizationView
+          parentOrg={selectedParent}
+          onBack={handleBackToParent}
+          onViewGrandchildren={handleViewGrandchildren}
+        />
+      )}
 
-      <TabPanel value={tabValue} index={1}>
-        <OrganizationHierarchy rootOrgId={1} />
-      </TabPanel>
-    </Box>
+      {view === "grandchild" && selectedParent && selectedChild && (
+        <GrandchildOrganizationView
+          parentOrg={selectedParent}
+          childOrg={selectedChild}
+          onBack={handleBackToChild}
+          onBackToParent={handleBackToParent}
+        />
+      )}
+    </>
   );
 }

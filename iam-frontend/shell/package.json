@@ -16,6 +16,7 @@
     "@mui/material": "^7.3.5",
     "@mui/x-tree-view": "^7.29.10",
     "@originjs/vite-plugin-federation": "^1.4.1",
+    "@react-google-maps/api": "^2.20.7",
     "axios": "^1.13.2",
     "react": "^18.2.0",
     "react-d3-tree": "^3.6.6",

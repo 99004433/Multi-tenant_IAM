@@ -66,10 +66,5 @@ public class OrganizationController {
         return service.delete(id)
                       .thenReturn(ResponseEntity.ok("Deleted successfully with ID: " + id));
     }
-    @GetMapping("/{id}/hierarchy")
-    public Mono<ResponseEntity<OrgHierarchyDTO>> getHierarchy(@PathVariable Long id) {
-        return service.getHierarchy(id)
-                      .map(ResponseEntity::ok)
-                      .onErrorResume(ResourceNotFoundException.class,
-                          e -> Mono.just(ResponseEntity.notFound().build()));
-    }}
+   
+    }

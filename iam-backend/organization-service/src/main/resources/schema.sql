@@ -5,12 +5,11 @@ CREATE TABLE IF NOT EXISTS organization (
     level INTEGER,
     address TEXT,
     status VARCHAR(20) DEFAULT 'ACTIVE',
-    latitude DOUBLE PRECISION,
-    longitude DOUBLE PRECISION,
     region VARCHAR(100),
     country VARCHAR(100),
     state VARCHAR(100),
     city VARCHAR(100),
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP
+    zipcode VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

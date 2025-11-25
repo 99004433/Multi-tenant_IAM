@@ -38,12 +38,6 @@ public class Organization {
     @Column("status")
     private String status;
 
-    @Column("latitude")
-    private Double latitude;
-
-    @Column("longitude")
-    private Double longitude;
-
     @Column("region")
     private String region;
 
@@ -55,6 +49,9 @@ public class Organization {
 
     @Column("city")
     private String city;
+
+    @Column("zipcode")
+    private String zipcode;
 
     @Column("created_at")
     private LocalDateTime createdAt;

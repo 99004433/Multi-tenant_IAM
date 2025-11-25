@@ -19,5 +19,4 @@ public interface OrganizationService {
 
     Mono<Void> delete(Long orgId);
     
-    Mono<OrgHierarchyDTO> getHierarchy(Long orgId);
 }
