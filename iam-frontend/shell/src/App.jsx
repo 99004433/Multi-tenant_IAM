@@ -75,7 +75,7 @@ export default function App() {
           <Sidebar menuItems={menuItems} open={sidebarOpen} />
         </Suspense>
 
-        <div style={{ flex: 1, padding: '20px', paddingTop: '80px' }}>
+        <div style={{ flex: 1, padding: '20px', paddingTop: '10px' }}>
           <Suspense fallback={<div>Loading Routes...</div>}>
             <Routes>
               <Route path="/" element={<Home />} />

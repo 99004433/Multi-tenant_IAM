@@ -7,7 +7,7 @@ const HospitalDetails = () => {
   const { name } = useParams();
 
   return (
-    <Box sx={{ paddingTop: '80px', paddingX: '20px' }}>
+    <Box sx={{ paddingTop: '10px', paddingX: '20px' }}>
       <Typography variant="h4" sx={{ fontWeight: 'bold', marginBottom: '20px' }}>
         {name}
       </Typography>

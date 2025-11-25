@@ -46,7 +46,7 @@ export default function App() {
       <div style={{ display: 'flex', flex: 1 }}>
         <Sidebar menuItems={menuItems} open={sidebarOpen} />
 
-        <div style={{ flex: 1, padding: '20px', paddingTop: '80px' }}>
+        <div style={{ flex: 1, padding: '20px', paddingTop: '10px' }}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/dummy" element={<DummyPage />} />

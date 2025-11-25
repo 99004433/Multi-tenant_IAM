@@ -42,7 +42,7 @@ const Home = () => {
   };
 
   return (
-    <Box sx={{ p: 3, paddingTop: '80px' }}>
+    <Box sx={{ p: 3, paddingTop: '10px' }}>
       <Typography variant="h4" gutterBottom fontWeight="bold">
         Welcome back, {user.firstName}!
       </Typography>
