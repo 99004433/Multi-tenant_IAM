@@ -36,7 +36,7 @@ const GroupList = () => {
 
   const fetchGroups = async () => {
     try {
-      const res = await axios.get('http://localhost:8082/api/groups');
+      const res = await axios.get('http://localhost:8085/api/groups');
       setGroups(res.data);
     } catch (err) {
       console.error('Failed to fetch groups:', err);
@@ -45,7 +45,7 @@ const GroupList = () => {
 
   const fetchOrganizations = async () => {
     try {
-      const res = await axios.get('http://localhost:8081/api/organizations');
+      const res = await axios.get('http://localhost:8085/api/organizations');
       setOrganizations(res.data);
     } catch (err) {
       console.error('Failed to fetch organizations:', err);
@@ -78,9 +78,9 @@ const GroupList = () => {
   const handleSubmit = async () => {
     try {
       if (dialogMode === 'create') {
-        await axios.post('http://localhost:8082/api/groups/create', currentGroup);
+        await axios.post('http://localhost:8085/api/groups/create', currentGroup);
       } else {
-        await axios.put(`http://localhost:8082/api/groups/updatedGroup/${currentGroup.id}`, currentGroup);
+        await axios.put(`http://localhost:8085/api/groups/updatedGroup/${currentGroup.id}`, currentGroup);
       }
       fetchGroups();
       handleCloseDialog();
@@ -91,7 +91,7 @@ const GroupList = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:8082/api/groups/deleteById/${id}`);
+      await axios.delete(`http://localhost:8085/api/groups/deleteById/${id}`);
       fetchGroups();
     } catch (err) {
       console.error('Failed to delete group:', err);
@@ -215,18 +215,21 @@ const GroupList = () => {
               value={currentGroup.description} onChange={handleChange}
             />
             <FormControl fullWidth margin="dense">
-              <InputLabel>Parent Organization</InputLabel>
-              <Select
-                name="parentOrg"
-                value={currentGroup.parentOrg}
-                onChange={handleChange}
-              >
-                {organizations
-                  .filter(org => org.status === 'ACTIVE')
-                  .map(org => (
-                    <MenuItem key={org.id} value={org.name}>{org.name}</MenuItem>
-                  ))}
-              </Select>
+                <InputLabel>Select Organization</InputLabel>
+  <Select
+    value={selectedOrg}
+    onChange={(e) => setSelectedOrg(e.target.value)}
+  >
+    <MenuItem value="">All Organizations</MenuItem>
+    {organizations
+      .filter(org => org.status.toLowerCase() === 'active') // ✅ lowercase check
+      .map(org => (
+        <MenuItem key={org.orgId} value={org.orgId}>
+          {org.name}
+        </MenuItem>
+      ))}
+  </Select>
+
             </FormControl>
             <FormControl fullWidth margin="dense">
               <InputLabel>Status</InputLabel>

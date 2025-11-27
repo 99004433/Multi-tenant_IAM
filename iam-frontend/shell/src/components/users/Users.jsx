@@ -93,10 +93,10 @@ export default function Users() {
   useEffect(() => {
     // load everything in parallel
     setLoading(true);
-    const p1 = api.get("http://localhost:8084/api/users/getAllUsers").then((r) => r.data).catch(() => []);
-    const p2 = api.get("http://localhost:8081/api/organizations").then((r) => r.data).catch(() => []);
-    const p3 = api.get("http://localhost:8082/api/groups").then((r) => r.data).catch(() => []);
-    const p4 = api.get("http://localhost:8080/api/roles").then((r) => r.data).catch(() => []);
+    const p1 = api.get("http://localhost:8085/api/users/getAllUsers").then((r) => r.data).catch(() => []);
+    const p2 = api.get("http://localhost:8085/api/organizations").then((r) => r.data).catch(() => []);
+    const p3 = api.get("http://localhost:8085/api/groups").then((r) => r.data).catch(() => []);
+    const p4 = api.get("http://localhost:8085/api/roles").then((r) => r.data).catch(() => []);
 
     Promise.all([p1, p2, p3, p4])
       .then(([usr, orgs, grps, rls]) => {
@@ -158,12 +158,12 @@ export default function Users() {
       const payload = buildPayload();
       if (formData.userId) {
         // update
-        const res = await api.put(`http://localhost:8084/api/users/updateUser/${formData.userId}`, payload);
+        const res = await api.put(`http://localhost:8085/api/users/updateUser/${formData.userId}`, payload);
         const updated = res.data;
         setUsers((prev) => prev.map((u) => (u.userId === formData.userId ? updated : u)));
         setSnackbar({ open: true, message: "User updated", severity: "success" });
       } else {
-        const res = await api.post("http://localhost:8084/api/users/save", payload);
+        const res = await api.post("http://localhost:8085/api/users/save", payload);
         setUsers((prev) => [...prev, res.data]);
         setSnackbar({ open: true, message: "User created", severity: "success" });
       }
@@ -230,7 +230,7 @@ export default function Users() {
     setConfirmDeleteOpen(false);
     if (!id) return;
     try {
-      await api.delete(`http://localhost:8084/api/users/deleteById/${id}`);
+      await api.delete(`http://localhost:8085/api/users/deleteById/${id}`);
       setUsers((p) => p.filter((u) => u.userId !== id));
       setSnackbar({ open: true, message: "User deleted", severity: "success" });
     } catch (err) {

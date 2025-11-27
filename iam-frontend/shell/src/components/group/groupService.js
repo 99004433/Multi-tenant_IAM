@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8082/api/groups'; // Backend URL
+const API_BASE_URL = 'http://localhost:8085/api/groups'; // Backend URL
 
 export const getGroups = () => axios.get(API_BASE_URL);
 export const getGroupById = (id) => axios.get(`${API_BASE_URL}/getGroupById/${id}`);

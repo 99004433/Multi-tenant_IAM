@@ -1,4 +1,3 @@
-// src/components/organizations/GrandchildOrganizationView.jsx
 import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import {
@@ -40,10 +39,10 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
 import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
-import AddressAutocomplete from "./AddressAutocomplete";
+import AutoCompleteSearch from "./AutoCompleteSearch";
 
 const api = axios.create({
-  baseURL: "http://localhost:8081/api/organizations",
+  baseURL: "http://localhost:8085/api/organizations",
   timeout: 15000,
 });
 
@@ -523,7 +522,7 @@ export default function GrandchildOrganizationView({ parentOrg, childOrg, onBack
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                     Search and auto-fill address details:
                   </Typography>
-                  <AddressAutocomplete onPlaceSelected={handlePlaceSelected} />
+                  <AutoCompleteSearch onSelect={handlePlaceSelected} />
                 </Box>
               </Grid>
 

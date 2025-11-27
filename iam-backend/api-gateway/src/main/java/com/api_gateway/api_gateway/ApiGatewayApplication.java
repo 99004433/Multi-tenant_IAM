@@ -11,7 +11,7 @@ public class ApiGatewayApplication {
 		System.out.println("\n" +
                 "═══════════════════════════════════════════════════════════\n" +
                 "   API Gateway Started Successfully! 🛡️\n" +
-                "   Gateway URL: http://localhost:8080\n" +
+                "   Gateway URL: http://localhost:8085\n" +
                 "   Auth Endpoints:\n" +
                 "     - POST /api/auth/register\n" +
                 "     - POST /api/auth/login\n" +

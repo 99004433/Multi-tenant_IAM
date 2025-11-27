@@ -12,7 +12,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 
-@CrossOrigin(origins = "http://localhost:5000")
 @RestController
 @RequestMapping("/api/groups")
 @RequiredArgsConstructor

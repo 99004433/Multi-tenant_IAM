@@ -1,4 +1,3 @@
-// src/components/organizations/index.jsx
 import React, { useState } from "react";
 import OrganizationList from "./OrganizationList";
 import ChildOrganizationView from "./ChildOrganizationView";
