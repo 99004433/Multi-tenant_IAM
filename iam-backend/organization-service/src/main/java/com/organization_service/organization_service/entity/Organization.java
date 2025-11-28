@@ -29,9 +29,6 @@ public class Organization {
     @Column("parent_org_id")
     private Long parentOrgId;
 
-    @Column("level")
-    private Integer level;
-
     @Column("address")
     private String address;
 

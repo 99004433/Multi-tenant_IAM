@@ -60,13 +60,26 @@ public class OrganizationServiceImpl implements OrganizationService {
 
 	@Override
 	public Mono<Void> delete(Long orgId) {
-		return repo.existsById(orgId).flatMap(exists -> {
-			if (!exists) {
-				return Mono.error(new ResourceNotFoundException("Organization not found: " + orgId));
-			}
-			return repo.deleteById(orgId);
-		});
+	    return repo.existsById(orgId)
+	        .flatMap(exists -> {
+	            if (!exists) {
+	                return Mono.error(new ResourceNotFoundException("Organization not found"));
+	            }
+
+	            // Check if it has children
+	            return repo.findAllByParentOrgId(orgId)
+	                    .hasElements()
+	                    .flatMap(hasChildren -> {
+	                        if (hasChildren) {
+	                            return Mono.error(
+	                                new IllegalStateException("Cannot delete: organization has child organizations")
+	                            );
+	                        }
+	                        return repo.deleteById(orgId);
+	                    });
+	        });
 	}
+
 
 	
 

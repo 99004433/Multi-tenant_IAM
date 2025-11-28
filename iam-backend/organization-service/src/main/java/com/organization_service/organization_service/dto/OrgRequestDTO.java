@@ -7,7 +7,6 @@ import lombok.Data;
 public class OrgRequestDTO {
 	private String name;
 	private Long parentOrgId;
-	private Integer level;
 	private String address;
 	private String status;
 	private String region;

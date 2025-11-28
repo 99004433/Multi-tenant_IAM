@@ -11,7 +11,7 @@ const Home = React.lazy(() => import('common/Home'));
 const HospitalDetails = React.lazy(() => import('common/HospitalDetails'));
 
 // Local pages
-import Organizations from './components/organizations';
+import Organizations from './components/organizations/Organizations';
 import GroupList from './components/group/GroupList';
 import GroupForm from './components/group/GroupForm';
 import Users from './components/users/Users';

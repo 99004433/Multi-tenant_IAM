@@ -13,7 +13,6 @@ public class OrganizationMapper {
         return Organization.builder()
                 .name(r.getName())
                 .parentOrgId(r.getParentOrgId())
-                .level(r.getLevel())
                 .address(r.getAddress())
                 .status(r.getStatus())
                 .region(r.getRegion())
@@ -29,7 +28,6 @@ public class OrganizationMapper {
                 .orgId(e.getOrgId())
                 .name(e.getName())
                 .parentOrgId(e.getParentOrgId())
-                .level(e.getLevel())
                 .address(e.getAddress())
                 .status(e.getStatus())
                 .region(e.getRegion())
@@ -45,7 +43,6 @@ public class OrganizationMapper {
     public void updateEntity(Organization e, OrgRequestDTO r) {
         if (r.getName() != null) e.setName(r.getName());
         e.setParentOrgId(r.getParentOrgId());
-        e.setLevel(r.getLevel());
         if (r.getAddress() != null) e.setAddress(r.getAddress());
         if (r.getStatus() != null) e.setStatus(r.getStatus());
         if (r.getRegion() != null) e.setRegion(r.getRegion());

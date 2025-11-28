@@ -7,5 +7,5 @@ import com.organization_service.organization_service.entity.Organization;
 import reactor.core.publisher.Flux;
 
 public interface OrganizationRepository extends ReactiveCrudRepository<Organization, Long> {
-	Flux<Organization> findByParentOrgId(Long parentOrgId);
+	 Flux<Organization> findAllByParentOrgId(Long parentOrgId);
 }
