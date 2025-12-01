@@ -34,8 +34,6 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private EmailService emailService;
-    @Autowired
     private R2dbcEntityTemplate template;
 
 
@@ -78,22 +76,6 @@ public class UserServiceImpl implements UserService {
                     log.debug("Saving new user (email={}) to repository", dto.getEmail());
 
                     return userRepository.save(entity)
-                            .flatMap(saved ->
-                                    // send email asynchronously
-                                    Mono.fromCallable(() -> {
-                                                emailService.sendUserCreatedEmail(
-                                                        saved.getEmail(),
-                                                        saved.getEmail(),
-                                                        rawPassword
-                                                );
-                                                return saved;
-                                            })
-                                            .subscribeOn(Schedulers.boundedElastic())
-                                            .onErrorResume(e -> {
-                                                log.error("Failed to send email to {}: {}", saved.getEmail(), e.getMessage());
-                                                return Mono.just(saved); // continue even if email fails
-                                            })
-                            )
                             .map(saved -> {
                                 log.info("User created successfully: id={} email={}", saved.getUserId(), saved.getEmail());
                                 return UserMapper.toResponse(saved);
@@ -188,35 +170,6 @@ public class UserServiceImpl implements UserService {
                 });
 
     }
-
-//    @Override
-//    public Mono<PageResponse<UserResponseDto>> searchByOrganization(String organization, int page, int size, String sortBy, String sortDir) {
-//        if (organization == null) organization = "";
-//        if (page < 0) page = 0;
-//        if (size <= 0) size = 10;
-//
-//        long skip = (long) page * size;
-//
-//        Mono<Long> totalMono = userRepository.findByOrganization(organization)
-//                .count();
-//
-//        Mono<List<UserResponseDto>> contentMono = userRepository.findByOrganization(organization)
-//                .skip(skip)
-//                .take(size)
-//                .map(UserMapper::toResponse)
-//                .collectList();
-//
-//        int finalPage = page;
-//        int finalSize = size;
-//        return Mono.zip(contentMono, totalMono)
-//                .map(tuple -> {
-//                    List<UserResponseDto> content = tuple.getT1();
-//                    long totalElements = tuple.getT2();
-//                    int totalPages = (int) ((totalElements + finalSize - 1) / finalSize);
-//                    return new PageResponse<>(content, finalPage, finalSize, totalElements, totalPages);
-//                });
-//    }
-
 
 
     @Override
