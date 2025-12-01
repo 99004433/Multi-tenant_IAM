@@ -1,5 +1,6 @@
 package com.user_service.user_service.service;
 
+import com.user_service.user_service.dto.PageResponse;
 import com.user_service.user_service.dto.UserRequestDto;
 import com.user_service.user_service.dto.UserResponseDto;
 import com.user_service.user_service.entity.User;
@@ -9,6 +10,8 @@ import com.user_service.user_service.repository.UserRepository;
 import com.user_service.user_service.util.PasswordUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,9 +19,13 @@ import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
+import org.springframework.data.relational.core.query.Query;
+import org.springframework.data.relational.core.query.Criteria;
+
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -28,6 +35,8 @@ public class UserServiceImpl implements UserService {
     private UserRepository userRepository;
     @Autowired
     private EmailService emailService;
+    @Autowired
+    private R2dbcEntityTemplate template;
 
 
 
@@ -136,6 +145,120 @@ public class UserServiceImpl implements UserService {
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("User not found")))
                 .map(UserMapper::toResponse);
     }
+
+
+    @Override
+    public Flux<UserResponseDto> searchByEmail(String emailFragment) {
+        String q = emailFragment == null ? "" : emailFragment.trim();
+        if (q.isEmpty()) {
+            return Flux.empty();
+        }
+        // Case-insensitive "contains" search
+        return userRepository.findByEmailContainingIgnoreCase(q)
+                .map(UserMapper::toResponse);
+    }
+
+    @Override
+    public Mono<PageResponse<UserResponseDto>> getUsers(int page, int size, String sortBy, String sortDir) {
+        if (page < 0) page = 0;
+        if (size <= 0) size = 10;
+
+        Sort.Direction direction = "asc".equalsIgnoreCase(sortDir) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        org.springframework.data.domain.Sort sort = org.springframework.data.domain.Sort.by(direction, sortBy == null ? "user_id" : sortBy);
+
+        Query query = Query.query(Criteria.empty())
+                .sort(sort)
+                .limit(size)
+                .offset((long) page * size);
+
+        Flux<UserResponseDto> contentFlux = template.select(query, User.class)
+                .map(UserMapper::toResponse);
+
+        Mono<List<UserResponseDto>> contentMono = contentFlux.collectList();
+        Mono<Long> countMono = template.count(Query.empty(), User.class);
+
+        int finalSize = size;
+        int finalPage = page;
+        return Mono.zip(contentMono, countMono)
+                .map(tuple -> {
+                    List<UserResponseDto> content = tuple.getT1();
+                    long total = tuple.getT2();
+                    int totalPages = (int) Math.ceil((double) total / finalSize);
+                    return new PageResponse<>(content, finalPage, finalSize, total, totalPages);
+                });
+
+    }
+
+//    @Override
+//    public Mono<PageResponse<UserResponseDto>> searchByOrganization(String organization, int page, int size, String sortBy, String sortDir) {
+//        if (organization == null) organization = "";
+//        if (page < 0) page = 0;
+//        if (size <= 0) size = 10;
+//
+//        long skip = (long) page * size;
+//
+//        Mono<Long> totalMono = userRepository.findByOrganization(organization)
+//                .count();
+//
+//        Mono<List<UserResponseDto>> contentMono = userRepository.findByOrganization(organization)
+//                .skip(skip)
+//                .take(size)
+//                .map(UserMapper::toResponse)
+//                .collectList();
+//
+//        int finalPage = page;
+//        int finalSize = size;
+//        return Mono.zip(contentMono, totalMono)
+//                .map(tuple -> {
+//                    List<UserResponseDto> content = tuple.getT1();
+//                    long totalElements = tuple.getT2();
+//                    int totalPages = (int) ((totalElements + finalSize - 1) / finalSize);
+//                    return new PageResponse<>(content, finalPage, finalSize, totalElements, totalPages);
+//                });
+//    }
+
+
+
+    @Override
+    public Mono<PageResponse<UserResponseDto>> searchByOrganization(
+            String organization, int page, int size, String sortBy, String sortDir) {
+
+        if (organization == null) organization = "";
+        if (page < 0) page = 0;
+        if (size <= 0) size = 10;
+
+        long skip = (long) page * size;
+
+        // Fetch matching users, then sort by userId ASC (as requested)
+        Flux<User> flux = userRepository.findByOrganization(organization)
+                .sort(Comparator.comparing(User::getUserId,
+                        Comparator.nullsLast(Comparator.naturalOrder())));
+
+        // Optional: honor sortDir if provided
+        if ("desc".equalsIgnoreCase(sortDir)) {
+            flux = flux.sort(Comparator.comparing(User::getUserId,
+                    Comparator.nullsLast(Comparator.naturalOrder())).reversed());
+        }
+
+        Mono<Long> totalMono = flux.count();
+
+        Mono<List<UserResponseDto>> contentMono = flux
+                .skip(skip)
+                .take(size)
+                .map(UserMapper::toResponse)
+                .collectList();
+
+        int finalPage = page;
+        int finalSize = size;
+        return Mono.zip(contentMono, totalMono)
+                .map(tuple -> {
+                    List<UserResponseDto> content = tuple.getT1();
+                    long totalElements = tuple.getT2();
+                    int totalPages = (int) ((totalElements + finalSize - 1) / finalSize);
+                    return new PageResponse<>(content, finalPage, finalSize, totalElements, totalPages);
+                });
+    }
+
 
 
 

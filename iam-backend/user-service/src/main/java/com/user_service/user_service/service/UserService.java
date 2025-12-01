@@ -1,5 +1,6 @@
 package com.user_service.user_service.service;
 
+import com.user_service.user_service.dto.PageResponse;
 import com.user_service.user_service.dto.UserRequestDto;
 import com.user_service.user_service.dto.UserResponseDto;
 import reactor.core.publisher.Flux;
@@ -12,4 +13,11 @@ public interface UserService {
     Flux<UserResponseDto> getAllUsers();
     Mono<UserResponseDto> updateUser(Long userId, UserRequestDto userRequestDto);
     Mono<Void> deleteUser(Long userId);
+
+    Flux<UserResponseDto> searchByEmail(String emailFragment);
+
+    Mono<PageResponse<UserResponseDto>> getUsers(int page, int size, String dbSortBy, String sortDir);
+
+//    Flux<Object> searchUsers(String query, int safePage, int safeSize);
+Mono<PageResponse<UserResponseDto>> searchByOrganization(String organization, int page, int size, String sortBy, String sortDir);
 }

@@ -8,48 +8,54 @@ spring:
 
   cloud:
     gateway:
-      routes:
-        # ----------------------------
-        # Organization-Service Route
-        # ----------------------------
-        - id: organization-service
-          uri: http://localhost:8081
-          predicates:
-            - Path=/api/organizations/**
-        # ----------------------------
-        # Role-Service Route
-        # ----------------------------
-        - id: role-service
-          uri: http://localhost:8080
-          predicates:
-            - Path=/api/roles/**
-        # ----------------------------
-        # Group-Service Route
-        # ----------------------------
-        - id: group-service
-          uri: http://localhost:8082
-          predicates:
-            - Path=/api/groups/**
-        # ----------------------------
-        # User-Service Route
-        # ----------------------------
-        - id: user-service
-          uri: http://localhost:8084
-          predicates:
-            - Path=/api/users/**
-
-      #  Add Global CORS Configuration
+      # ✅ Global CORS: manage CORS only at the gateway
       globalcors:
         add-to-simple-url-handler-mapping: true
         corsConfigurations:
           '[/**]':
-            allowedOrigins: "http://localhost:5000"   # Your frontend origin
-            allowedMethods: "*"
-            allowedHeaders: "*"
+            allowedOrigins:
+              - "http://localhost:5000"   # Your frontend origin (dev)
+              # Add other dev origins only if you actually use them:
+              # - "http://localhost:3000"
+              # - "http://localhost:5173"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+              - OPTIONS
+            allowedHeaders:
+              - Authorization
+              - Content-Type
+              - X-Requested-With
+              - Accept
+            exposedHeaders:
+              - Authorization
+              - Content-Type
+              - X-Request-Id
             allowCredentials: true
 
-logging:
-  level:
-    org.springframework.cloud.gateway: DEBUG
-    reactor.netty.http.client: DEBUG
-    reactor.netty.http.server: DEBUG
+      # ✅ Dedupe headers to prevent "multiple values" errors
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin, RETAIN_LAST
+        - DedupeResponseHeader=Access-Control-Allow-Credentials, RETAIN_LAST
+
+      # ✅ Routes to downstream services (no StripPrefix since services expose /api/**)
+      routes:
+        - id: organization-service
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/organizations/**
+        - id: role-service
+          uri: http://localhost:8080
+          predicates:
+            - Path=/api/roles/**
+        - id: group-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/groups/**
+        - id: user-service
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/users/**
