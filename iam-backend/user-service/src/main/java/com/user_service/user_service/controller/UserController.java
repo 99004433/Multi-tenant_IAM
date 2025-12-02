@@ -1,17 +1,11 @@
 package com.user_service.user_service.controller;
 
+import com.user_service.user_service.dto.PageResponse;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.user_service.user_service.dto.UserRequestDto;
 import com.user_service.user_service.dto.UserResponseDto;
@@ -51,10 +45,10 @@ public class UserController {
                 .map(ResponseEntity::ok);
     }
 
-    @GetMapping("getAllUsers")
-    public Flux<UserResponseDto> getAll() {
-        return userService.getAllUsers();
-    }
+//    @GetMapping("getAllUsers")
+//    public Flux<UserResponseDto> getAll() {
+//        return userService.getAllUsers();
+//    }
 
 
     @PutMapping("/updateUser/{id}")
@@ -72,5 +66,60 @@ public class UserController {
         return userService.deleteUser(id)
                 .thenReturn(ResponseEntity.noContent().build());
     }
+
+
+    /**
+     * GET /api/users/searchByEmail?q=<text>
+     * Search users by email (case-insensitive, contains).
+     */
+    @GetMapping("/searchByEmail")
+    public Flux<UserResponseDto> searchByEmail(@RequestParam("q") @NotBlank String q) {
+        String query = q.trim();
+        log.info("Searching users by email: q='{}'", query);
+        if (query.isEmpty()) {
+            // Return empty Flux when query is blank to avoid scanning the whole table.
+            return Flux.empty();
+        }
+        return userService.searchByEmail(query);
+    }
+
+    @GetMapping
+    public Mono<PageResponse<UserResponseDto>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "userId") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir
+    ) {
+        // map sortBy from DTO property to DB column if needed (e.g. userId -> user_id)
+        String dbSortBy = mapSortBy(sortBy);
+        return userService.getUsers(page, size, dbSortBy, sortDir);
+    }
+
+    private String mapSortBy(String sortBy) {
+        // simple example mapping; change according to your DB column names
+        return switch (sortBy) {
+            case "userId" -> "user_id";
+            case "firstName" -> "first_name";
+            case "createdAt" -> "created_at";
+            default -> sortBy; // assume it's a valid column name
+        };
+    }
+
+    /**
+     * Search users by organization name (partial, case-insensitive)
+     * Example: GET /api/users/searchByOrganization?organization=apollo&page=0&size=10
+     */
+    @GetMapping("/searchByOrganization")
+    public Mono<PageResponse<UserResponseDto>> searchByOrganization(
+            @RequestParam("organization") String organization,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            @RequestParam(name = "sortBy", defaultValue = "userId") String sortBy,
+            @RequestParam(name = "sortDir", defaultValue = "asc") String sortDir
+
+    ) {
+        return userService.searchByOrganization(organization, page, size, sortBy, sortDir);
+    }
+
 
 }
