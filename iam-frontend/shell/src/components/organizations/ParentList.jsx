@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState ,useEffect} from "react";
 import {
   Box,
   Card,
@@ -33,6 +33,8 @@ export default function ParentList({ organizations, onViewChildren, onRefresh })
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [total, setTotal] = useState(0);
+    const [loading, setLoading] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [form, setForm] = useState({
@@ -60,9 +62,41 @@ export default function ParentList({ organizations, onViewChildren, onRefresh })
   });
   setDialogOpen(true);
 };
+useEffect(() => {
+  loadOrganizations();
+}, []);
+
+const loadOrganizations = async (pageNumber = page, size = rowsPerPage) => {
+  setLoading(true);
+  try {
+    const response = await organizationService.getPaginated(pageNumber, size);
+    setTotal(response.totalElements);
+  } catch (err) {
+    console.error(err);
+    alert("Failed to load organizations");
+  } finally {
+    setLoading(false);
+  }
+};
+// when user changes page
+const handlePageChange = (newPage) => {
+  setPage(newPage);
+  loadOrganizations(newPage, rowsPerPage);
+};
+
+// when user changes rows per page
+const handleRowsPerPageChange = (newSize) => {
+  setRowsPerPage(newSize);
+  setPage(0);
+  loadOrganizations(0, newSize);
+};
 
   // top-level parents = parentOrgId null or undefined
-  const parents = useMemo(() => organizations.filter((o) => !o.parentOrgId), [organizations]);
+  const parents = useMemo(() => {
+  return organizations
+    .filter((o) => !o.parentOrgId)
+    .sort((a, b) => a.orgId - b.orgId);     // Sort by orgId
+}, [organizations]);
 
   const visible = useMemo(() => {
     const q = (search || "").trim().toLowerCase();
@@ -141,8 +175,8 @@ export default function ParentList({ organizations, onViewChildren, onRefresh })
         <Button variant="outlined" onClick={onRefresh}>Refresh</Button>
       </Box>
 
-      <TableContainer component={Paper} elevation={0}>
-        <Table>
+      <TableContainer component={Paper} elevation={0} sx={{ maxHeight: "55vh" }}>
+        <Table stickyHeader>
           <TableHead>
             <TableRow sx={{ background: "#f5f5f5" }}>
               <TableCell>Organization Name</TableCell>
@@ -208,21 +242,23 @@ export default function ParentList({ organizations, onViewChildren, onRefresh })
       </TableContainer>
 
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 2 }}>
-        <Box>
-          <Button disabled={page === 0} onClick={() => setPage(Math.max(0, page - 1))}>Previous</Button>
-          <Button disabled={(page + 1) * rowsPerPage >= visible.length} onClick={() => setPage(page + 1)}>Next</Button>
-        </Box>
+      
+      <Box>
+  <Button disabled={page === 0} onClick={() => handlePageChange(page - 1)}>Previous</Button>
+  <Button disabled={(page + 1) * rowsPerPage >= total} onClick={() => handlePageChange(page + 1)}>Next</Button>
+</Box>
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <div>Rows per page:</div>
-          <Select size="small" value={rowsPerPage} onChange={(e) => { setRowsPerPage(Number(e.target.value)); setPage(0); }}>
-            <MenuItem value={5}>5</MenuItem>
-            <MenuItem value={10}>10</MenuItem>
-            <MenuItem value={25}>25</MenuItem>
-          </Select>
-          <div>Total: {visible.length}</div>
-        </Box>
-      </Box>
+<Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+  <div>Rows per page:</div>
+  <Select size="small" value={rowsPerPage} onChange={(e) => handleRowsPerPageChange(Number(e.target.value))}>
+    <MenuItem value={5}>5</MenuItem>
+    <MenuItem value={10}>10</MenuItem>
+    <MenuItem value={25}>25</MenuItem>
+  </Select>
+  <div>Total: {total}</div>
+</Box>
+</Box>
+
       <OrgDialog
   open={dialogOpen}
   form={form}

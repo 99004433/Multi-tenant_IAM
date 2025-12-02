@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { computeDepth } from "../../utils/orgUtils";
 
 export default function AutoCompleteSearch({ onSelect }) {
   const [service, setService] = useState(null);
@@ -32,7 +33,7 @@ export default function AutoCompleteSearch({ onSelect }) {
       return;
     }
 
-    service.getPlacePredictions({ input: value, componentRestrictions: { country: "IN" } }, (res, status) => {
+    service.getPlacePredictions({ input: value}, (res, status) => {
       if (status === window.google.maps.places.PlacesServiceStatus.OK) {
         setPredictions(res);
       } else {

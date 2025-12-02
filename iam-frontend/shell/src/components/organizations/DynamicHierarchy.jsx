@@ -20,7 +20,7 @@ import {
   Tooltip,
   Divider,
 } from "@mui/material";
-
+import OrgFooterButtons from "../organizations/OrgFooterButtons";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -140,6 +140,14 @@ export default function DynamicHierarchy({
       alert("Delete failed");
     }
   };
+    // ----------------------- USER / GROUP / ROLE DIALOGS -----------------------
+  const [userDialogOpen, setUserDialogOpen] = useState(false);
+  const [groupDialogOpen, setGroupDialogOpen] = useState(false);
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+
+  const openUserDialog = (org) => setUserDialogOpen(true);
+  const openGroupDialog = (org) => setGroupDialogOpen(true);
+  const openRoleDialog = (org) => setRoleDialogOpen(true);
 
   return (
     <Box>
@@ -198,102 +206,141 @@ export default function DynamicHierarchy({
         </CardContent>
       </Card>
 
-      {/* ---------------------------------- CHILD LIST ---------------------------------- */}
-      <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-            Children ({children.length})
-            </Typography>
+  {/* ---------------------------------- CHILD LIST ---------------------------------- */}
+<Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+  Children ({children.length})
+</Typography>
 
-            {children.length === 0 && (
-            <Box
+{children.length === 0 && (
+  <Box
+    sx={{
+      py: 3,
+      px: 2,
+      border: "1px dashed #e0e0e0",
+      borderRadius: 1,
+      textAlign: "center",
+    }}
+  >
+    <Typography color="text.secondary">
+      No child organizations.
+    </Typography>
+  </Box>
+)}
+
+{/* Scrollable container for child list */}
+<Box
+  sx={{
+    maxHeight: "55vh",   // adjust as needed
+    overflowY: "auto",   // enables vertical scroll
+    pr: 1,               // optional padding for scrollbar
+  }}
+>
+  <Grid
+    container
+    spacing={3}
+    sx={{
+      paddingX: 2,
+      paddingY: 1,
+      mb: 2,
+    }}
+  >
+    {children.map((c) => (
+      <Grid item xs={12} sm={6} md={4} key={c.orgId}>
+        <Card
+          onClick={() => goInto(c)}
+          sx={{
+            cursor: "pointer",
+            borderRadius: 2,
+            borderLeft: "4px solid #4caf50",
+            minHeight: 180,
+            transition: "0.2s",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            "&:hover": {
+              backgroundColor: "#f4fff4",
+              transform: "scale(1.02)",
+            },
+          }}
+        >
+          <CardContent>
+            <Typography fontWeight={700}>{c.name}</Typography>
+            <Typography color="text.secondary">{c.address}</Typography>
+
+            <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
+              <Chip
+                size="small"
+                label={`Children: ${childCount(c.orgId)}`}
                 sx={{
-                py: 3,
-                px: 2,
-                border: "1px dashed #e0e0e0",
-                borderRadius: 1,
-                textAlign: "center",
+                  background: "#e3f2fd",
+                  color: "#1976d2",
+                  fontWeight: 600,
                 }}
-            >
-                <Typography color="text.secondary">
-                No child organizations.
-                </Typography>
+              />
+              <Chip
+                size="small"
+                label={c.status.toUpperCase()}
+                sx={{
+                  background: c.status === "active" ? "#e8f5e9" : "#ffebee",
+                  color: c.status === "active" ? "#2e7d32" : "#c62828",
+                  fontWeight: 700,
+                }}
+              />
             </Box>
-            )}  
 
-      <Grid container spacing={2}>
-        {children.map((c) => (
-          <Grid item xs={12} sm={6} md={4} key={c.orgId}>
-            <Card
-              onClick={() => goInto(c)}
-              sx={{
-                cursor: "pointer",
-                borderRadius: 2,
-                borderLeft: "4px solid #4caf50",
-                transition: "0.2s",
-                "&:hover": {
-                  backgroundColor: "#f4fff4",
-                  transform: "scale(1.01)",
-                },
-              }}
-            >
-              <CardContent>
-                <Typography fontWeight={700}>{c.name}</Typography>
-                <Typography color="text.secondary">{c.address}</Typography>
-
-                <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
-                  <Chip
-                    size="small"
-                    label={`Children: ${childCount(c.orgId)}`}
-                    sx={{
-                      background: "#e3f2fd",
-                      color: "#1976d2",
-                      fontWeight: 600,
-                    }}
-                  />
-
-                  {/* ACTIVE/INACTIVE COLOR */}
-                  <Chip
-                    size="small"
-                    label={c.status.toUpperCase()}
-                    sx={{
-                      background: c.status === "active" ? "#e8f5e9" : "#ffebee",
-                      color: c.status === "active" ? "#2e7d32" : "#c62828",
-                      fontWeight: 700,
-                    }}
-                  />
-                </Box>
-
-                {/* ACTION ICONS */}
-                <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
-                  <Tooltip title="Edit">
-                    <IconButton
-                      size="small"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openEditDialog(c);
-                      }}
-                    >
-                      <EditIcon fontSize="small" color="primary"/>
-                    </IconButton>
-                  </Tooltip>
-
-                  <Tooltip title="Delete">
-                    <IconButton
-                      size="small"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(c.orgId);
-                      }}
-                    >
-                      <DeleteIcon fontSize="small" color="error" />
-                    </IconButton>
-                  </Tooltip>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
+            <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
+              <Tooltip title="Edit">
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openEditDialog(c);
+                  }}
+                >
+                  <EditIcon fontSize="small" color="primary" />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Delete">
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(c.orgId);
+                  }}
+                >
+                  <DeleteIcon fontSize="small" color="error" />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          </CardContent>
+        </Card>
       </Grid>
-
+    ))}
+  </Grid>
+</Box>
+ 
+<Box
+  sx={{
+    position: "fixed",
+    bottom: 0,
+    left: 0,
+    width: "100%",
+    bgcolor: "#fff",
+    borderTop: "1px solid #e0e0e0",
+    py: 0.5,              // reduced vertical padding
+    px: 1,                // optional horizontal padding
+    display: "flex",
+    justifyContent: "center",
+    zIndex: 999,          // above content
+  }}
+>
+  <OrgFooterButtons
+    current={current}
+    openUserDialog={openUserDialog}
+    openGroupDialog={openGroupDialog}
+    openRoleDialog={openRoleDialog}
+  />
+</Box>
       {/* ---------------------------------- DIALOG ---------------------------------- */}
       <OrgDialog
         open={dialogOpen}

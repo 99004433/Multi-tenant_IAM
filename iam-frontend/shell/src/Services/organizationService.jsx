@@ -7,4 +7,6 @@ export default {
   create: (payload) => api.post("", payload).then(res => res.data),
   update: (id, payload) => api.put(`/${id}`, payload).then(res => res.data),
   remove: (id) => api.delete(`/${id}`).then(res => res.data),
+  getPaginated: (page = 0, size = 10) =>
+  api.get(`/page?page=${page}&size=${size}`).then(res => res.data),
 };

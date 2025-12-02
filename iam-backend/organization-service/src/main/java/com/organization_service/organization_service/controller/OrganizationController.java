@@ -3,8 +3,6 @@ package com.organization_service.organization_service.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,12 +10,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.organization_service.organization_service.dto.OrgHierarchyDTO;
 import com.organization_service.organization_service.dto.OrgRequestDTO;
 import com.organization_service.organization_service.dto.OrgResponseDTO;
-import com.organization_service.organization_service.exception.ResourceNotFoundException;
+import com.organization_service.organization_service.dto.PageResponse;
 import com.organization_service.organization_service.service.OrganizationService;
 
 import jakarta.validation.Valid;
@@ -66,5 +64,13 @@ public class OrganizationController {
         return service.delete(id)
                       .thenReturn(ResponseEntity.ok("Deleted successfully with ID: " + id));
     }
+    @GetMapping("/page")
+    public Mono<PageResponse<OrgResponseDTO>> getPaginated(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        return service.getPaginated(page, size);
+    }
+
    
     }

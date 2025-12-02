@@ -11,6 +11,8 @@ import {
   CircularProgress,
 } from "@mui/material";
 
+import AutoCompleteSearch from "./AutoCompleteSearch"; // <-- IMPORTANT: add this import
+
 export default function OrgDialog({
   open,
   form,
@@ -20,7 +22,26 @@ export default function OrgDialog({
   onSubmit,
   parentName,
 }) {
+
+  // Handler triggered when a location is selected
+  const handleLocationSelect = (loc) => {
+    if (!loc) return;
+
+    // Autofill all fields using your existing onChange()
+    const apply = (name, value) => {
+      onChange({ target: { name, value } });
+    };
+
+    apply("address", loc.address || "");
+    apply("city", loc.city || "");
+    apply("state", loc.state || "");
+    apply("country", loc.country || "");
+    apply("zipcode", loc.zipcode || "");
+    apply("region", loc.region || "");
+  };
+
   return (
+    <DialogContent sx={{ maxHeight: "60vh", overflow: "auto" }}>
     <Dialog open={open} fullWidth maxWidth="md" onClose={onClose}>
       <DialogTitle fontWeight={700}>
         {form.orgId
@@ -32,6 +53,12 @@ export default function OrgDialog({
 
       <form onSubmit={onSubmit}>
         <DialogContent>
+
+          {/* 🌍 AutoComplete Search box */}
+          <Box sx={{ mb: 2 }}>
+            <AutoCompleteSearch onSelect={handleLocationSelect} />
+          </Box>
+
           <Box
             sx={{
               display: "grid",
@@ -46,6 +73,7 @@ export default function OrgDialog({
               onChange={onChange}
               required
             />
+
             <TextField
               label="Address"
               name="address"
@@ -53,30 +81,35 @@ export default function OrgDialog({
               onChange={onChange}
               required
             />
+
             <TextField
               label="City"
               name="city"
               value={form.city}
               onChange={onChange}
             />
+
             <TextField
               label="State"
               name="state"
               value={form.state}
               onChange={onChange}
             />
+
             <TextField
               label="Country"
               name="country"
               value={form.country}
               onChange={onChange}
             />
+
             <TextField
               label="Zipcode"
               name="zipcode"
               value={form.zipcode}
               onChange={onChange}
             />
+
             <TextField
               select
               name="status"
@@ -87,6 +120,7 @@ export default function OrgDialog({
               <MenuItem value="active">Active</MenuItem>
               <MenuItem value="inactive">Inactive</MenuItem>
             </TextField>
+
             <TextField
               label="Region"
               name="region"
@@ -104,5 +138,7 @@ export default function OrgDialog({
         </DialogActions>
       </form>
     </Dialog>
+    </DialogContent>
+
   );
 }

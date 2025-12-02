@@ -36,3 +36,4 @@ export default function Organizations() {
     </>
   );
 }
+//- It centralizes data fetching in one place (loadAll), so both views stay in sync.

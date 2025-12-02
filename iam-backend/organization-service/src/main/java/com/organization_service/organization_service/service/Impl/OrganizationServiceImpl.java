@@ -4,9 +4,9 @@ import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 
-import com.organization_service.organization_service.dto.OrgHierarchyDTO;
 import com.organization_service.organization_service.dto.OrgRequestDTO;
 import com.organization_service.organization_service.dto.OrgResponseDTO;
+import com.organization_service.organization_service.dto.PageResponse;
 import com.organization_service.organization_service.entity.Organization;
 import com.organization_service.organization_service.exception.ResourceNotFoundException;
 import com.organization_service.organization_service.mapper.OrganizationMapper;
@@ -80,6 +80,18 @@ public class OrganizationServiceImpl implements OrganizationService {
 	        });
 	}
 
+	@Override
+	public Mono<PageResponse<OrgResponseDTO>> getPaginated(int page, int size) {
+	    long offset = (long) page * size;
+
+	    return repo.countAllOrganizations()
+	            .flatMap(total ->
+	                repo.findAllPaginated(offset, size)
+	                    .map(mapper::toResponse)
+	                    .collectList()
+	                    .map(list -> new PageResponse<>(list, page, size, total))
+	            );
+	}
 
 	
 
