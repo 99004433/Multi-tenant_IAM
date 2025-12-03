@@ -4,6 +4,7 @@ package com.user_service.user_service.mapper;
 import com.user_service.user_service.dto.UserRequestDto;
 import com.user_service.user_service.dto.UserResponseDto;
 import com.user_service.user_service.entity.User;
+import com.user_service.user_service.enums.UserStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 public class UserMapper {
@@ -21,7 +22,7 @@ public class UserMapper {
                 .role(dto.getRole())
                 .contactNo(dto.getContactNo())
                 .password(passwordEncoder.encode(dto.getPassword()))
-                .status("ACTIVE")
+                .status(UserStatus.ACTIVE)
                 .build();
     }
 
@@ -34,6 +35,7 @@ public class UserMapper {
         if (dto.getGroupName() != null) entity.setGroupName(dto.getGroupName());
         if (dto.getRole() != null) entity.setRole(dto.getRole());
         if (dto.getContactNo() != null) entity.setContactNo(dto.getContactNo());
+        if (dto.getStatus() != null) entity.setStatus(dto.getStatus());
         if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
             entity.setPassword(passwordEncoder.encode(dto.getPassword()));
         }

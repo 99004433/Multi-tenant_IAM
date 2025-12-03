@@ -15,10 +15,12 @@
     "@mui/icons-material": "^7.3.5",
     "@mui/material": "^7.3.5",
     "@originjs/vite-plugin-federation": "^1.4.1",
+    "@stomp/stompjs": "^7.2.1",
     "react": "^18.2.0",
     "react-d3-tree": "^3.6.6",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.22.3"
+    "react-router-dom": "^6.22.3",
+    "sockjs-client": "^1.6.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

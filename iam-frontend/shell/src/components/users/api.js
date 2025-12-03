@@ -1,37 +1,3 @@
-
-// // src/components/users/api.js
-// import axios from "axios";
-
-// // ----- axios instances with hard-coded base URLs -----
-// export const usersApi   = axios.create({ baseURL: "http://localhost:8084" }); // pagination/listing & CRUD
-// export const orgsApi    = axios.create({ baseURL: "http://localhost:8081" }); // organizations list
-// export const groupsApi  = axios.create({ baseURL: "http://localhost:8082" }); // groups list
-// export const rolesApi   = axios.create({ baseURL: "http://localhost:8080" }); // roles list
-// export const orgUsersApi= axios.create({ baseURL: "http://localhost:8084" }); // organization users
-
-// // Listing
-// export const fetchUsersPaged = (params, signal) =>
-//   usersApi.get("/api/users", { params, signal });
-
-// // Org filter (server-paged) — UPDATED to accept page & size
-// export const fetchUsersByOrgPaged = (params, signal) =>
-//   orgUsersApi.get("/api/users/searchByOrganization", { params, signal });
-
-// // Search by email (client-paged in UI)
-// export const searchUsersByEmail = (q, signal) =>
-//   usersApi.get("/api/users/searchByEmail", { params: { q }, signal });
-
-// // CRUD
-// export const saveUser = (payload) =>
-//   usersApi.post("/api/users/save", payload);
-
-// export const updateUser = (id, payload) =>
-//   usersApi.put(`/api/users/updateUser/${id}`, payload);
-
-// export const deleteUserById = (id) =>
-//   usersApi.delete(`/api/users/deleteById/${id}`);
-
-// src/components/users/api.js
 import axios from "axios";
 
 const API_BASE =

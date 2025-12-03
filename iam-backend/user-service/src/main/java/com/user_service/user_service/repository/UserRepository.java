@@ -26,4 +26,20 @@ public interface UserRepository extends ReactiveCrudRepository<User, Long> {
     Flux<User> findByOrganization(String organization);
 
 
+    @Query("""
+        SELECT * FROM user_account
+        WHERE status = 'ACTIVE' AND last_login < (NOW() - INTERVAL '5 days')
+    """)
+    Flux<User> findUsersInactiveByLoginThreshold();
+
+    @Query("""
+        UPDATE user_account
+        SET status = 'INACTIVE', updated_at = NOW()
+        WHERE user_id = :userId AND status = 'ACTIVE'
+        RETURNING user_id
+    """)
+    Mono<Long> markInactiveIfActive(Long userId);
+
+
+
 }

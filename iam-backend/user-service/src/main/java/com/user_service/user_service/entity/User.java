@@ -1,4 +1,5 @@
 package com.user_service.user_service.entity;
+import com.user_service.user_service.enums.UserStatus;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 import lombok.*;
@@ -24,7 +25,7 @@ public class User {
 	private String lastName;
 	private String password;
 	private LocalDateTime lastLogin;
-	private String status;
+	private UserStatus status;
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
 }

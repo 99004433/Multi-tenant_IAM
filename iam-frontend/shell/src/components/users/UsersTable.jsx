@@ -15,7 +15,7 @@ export default function UsersTable({
   requestDelete,
 }) {
   return (
-    <Box sx={{ maxHeight: 520, overflow: "auto", border: "1px solid #eee", borderRadius: 1 }}>
+    <Box sx={{ maxHeight: 420, overflow: "auto", border: "1px solid #eee", borderRadius: 1 }}>
       <table style={{ width: "100%", borderCollapse: "collapse" }} aria-label="Users table">
         <thead>
           <tr>
@@ -33,7 +33,7 @@ export default function UsersTable({
         </thead>
         <tbody>
           {pagedRows.map((u, idx) => (
-            <tr key={u.userId} style={{ backgroundColor: idx % 2 === 0 ? "#fff" : "#fafafa" }}>
+            <tr key={u.userId} style={{ backgroundColor: idx % 2 === 0 ? "#fff" : "hsla(0, 0%, 97%, 1.00)" }}>
               <td style={tdStyle}>{u.userId}</td>
               <td style={tdStyle}>{u.firstName}</td>
               <td style={tdStyle}>{u.middleName || "-"}</td>
@@ -47,7 +47,10 @@ export default function UsersTable({
                   <Chip
                     size="small"
                     label={u.status}
-                    color={String(u.status).toLowerCase() === "active" ? "success" : "default"}
+                    color={String(u.status).toLowerCase() === "active" ? "success" 
+                          : String(u.status).toLowerCase() === "inactive"
+                          ? "error"
+                          : "default"}
                     variant="outlined"
                   />
                 ) : (

@@ -1,6 +1,7 @@
 package com.user_service.user_service.dto;
 
 
+import com.user_service.user_service.enums.UserStatus;
 import lombok.Builder;
 import lombok.Data;
 
@@ -22,7 +23,7 @@ public class UserResponseDto {
     private String role;
     private String contactNo;
     private LocalDateTime lastLogin;
-    private String status;
+    private UserStatus status;
     private String password;
 
     private LocalDateTime createdAt;

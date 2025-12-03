@@ -1,5 +1,6 @@
 package com.user_service.user_service.dto;
 
+import com.user_service.user_service.enums.UserStatus;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -26,6 +27,8 @@ public class UserRequestDto {
 
     private String groupName;
     private String role;
+
+    private UserStatus status;
 
     private String contactNo;
     private String password;
