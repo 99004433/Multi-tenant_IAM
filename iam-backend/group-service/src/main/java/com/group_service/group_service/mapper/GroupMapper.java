@@ -1,5 +1,8 @@
 package com.group_service.group_service.mapper;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
+
 import com.group_service.group_service.dto.GroupRequestDto;
 import com.group_service.group_service.dto.GroupResponseDto;
 import com.group_service.group_service.entity.Group;
@@ -35,4 +38,9 @@ public class GroupMapper {
         entity.setDescription(dto.getDescription());
         entity.setAllowedRoleIds(dto.getAllowedRoleIds());
     }
+    
+    
 }
+
+
+

@@ -39,6 +39,7 @@ package com.group_service.group_service.entity;
 
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -53,10 +54,14 @@ import java.util.List;
 public class Group {
 	@Id
 	private Long groupId;
+	
+	@Column(value = "org_id")
 	private Long orgId;
 	private String name;
 	private String description;
 	private String status;
+	
+	@Column(value = "allowed_role_ids")
 	private List<Long> allowedRoleIds;
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;

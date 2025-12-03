@@ -16,6 +16,7 @@
     "@mui/material": "^7.3.5",
     "@originjs/vite-plugin-federation": "^1.4.1",
     "@stomp/stompjs": "^7.2.1",
+    "axios": "^1.13.2",
     "react": "^18.2.0",
     "react-d3-tree": "^3.6.6",
     "react-dom": "^18.2.0",
