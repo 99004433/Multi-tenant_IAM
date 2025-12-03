@@ -11,5 +11,4 @@ CREATE TABLE IF NOT EXISTS groups (
     
     
     
-ALTER TABLE groups ADD COLUMN org_id BIGINT;
-ALTER TABLE groups ADD COLUMN allowed_role_ids INTEGER[];
+

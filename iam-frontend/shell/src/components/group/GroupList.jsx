@@ -71,7 +71,7 @@ const GroupList = () => {
   // -------- Fetchers --------
   const fetchGroups = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/api/groups`);
+      const res = await axios.get(`${API_BASE}/groups`);
       const normalized = Array.isArray(res.data) ? res.data.map(normalizeGroup) : [];
       setGroups(normalized);
     } catch (err) {
@@ -82,7 +82,7 @@ const GroupList = () => {
 
   const fetchOrganizations = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/api/organizations`);
+      const res = await axios.get(`${API_BASE}/organizations`);
       const normalized = Array.isArray(res.data) ? res.data.map(normalizeOrg) : [];
       setOrganizations(normalized);
     } catch (err) {
@@ -93,7 +93,7 @@ const GroupList = () => {
 
   const fetchRoles = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/api/roles`);
+      const res = await axios.get(`${API_BASE}/roles`);
       const normalized = Array.isArray(res.data) ? res.data.map(normalizeRole) : [];
       setRoles(normalized);
     } catch (err) {
@@ -151,10 +151,10 @@ const GroupList = () => {
 
     try {
       if (dialogMode === 'create') {
-        await axios.post(`${API_BASE}/api/groups/create`, groupPayload);
+        await axios.post(`${API_BASE}/groups/create`, groupPayload);
       } else {
         await axios.put(
-          `${API_BASE}/api/groups/updatedGroup/${groupPayload.id}`,
+          `${API_BASE}/groups/updatedGroup/${groupPayload.id}`,
           groupPayload
         );
       }
@@ -169,7 +169,7 @@ const GroupList = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this group?')) return;
     try {
-      await axios.delete(`${API_BASE}/api/groups/deleteById/${id}`);
+      await axios.delete(`${API_BASE}/groups/deleteById/${id}`);
       fetchGroups();
     } catch (err) {
       console.error('Failed to delete group:', err);

@@ -11,7 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class GroupRequestDto {
-    private Long OrgId;
+    private Long orgId;
     private String name;
     private String description;
     private List<Long> allowedRoleIds; // new field
