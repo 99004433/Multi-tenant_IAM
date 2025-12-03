@@ -34,8 +34,8 @@ export default function DynamicHierarchy({
   onBackToParent,
   onRefresh,
 }) {
-  const [stack, setStack] = useState([rootOrg]);
-  const current = stack[stack.length - 1];
+  const [stack, setStack] = useState([rootOrg]);//Keeps track of the navigation path (like breadcrumbs).
+  const current = stack[stack.length - 1];// The organization currently being viewed (last in the stack).
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);

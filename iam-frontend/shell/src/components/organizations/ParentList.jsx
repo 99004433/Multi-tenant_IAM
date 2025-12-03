@@ -30,13 +30,14 @@ import OrgDialog from "../organizations/OrgDialog";
 
 
 export default function ParentList({ organizations, onViewChildren, onRefresh }) {
-    const [search, setSearch] = useState("");
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
-    const [total, setTotal] = useState(0);
-    const [loading, setLoading] = useState(false);
-    const [dialogOpen, setDialogOpen] = useState(false);
-    const [submitting, setSubmitting] = useState(false);
+    const [search, setSearch] = useState("");//Current search query string.
+    const [page, setPage] = useState(0);// Current page number for pagination.
+    const [rowsPerPage, setRowsPerPage] = useState(10);//How many rows to show per page.
+    const [total, setTotal] = useState(0);// Total number of organizations (from API).
+    const [loading, setLoading] = useState(false);//Whether data is being fetched.
+    const [dialogOpen, setDialogOpen] = useState(false);//Controls visibility of the add/edit dialog.
+    const [submitting, setSubmitting] = useState(false);//Tracks whether a form submission is in progress.
+    //Holds the organization data being edited/added.
     const [form, setForm] = useState({
     orgId: null,
     name: "",

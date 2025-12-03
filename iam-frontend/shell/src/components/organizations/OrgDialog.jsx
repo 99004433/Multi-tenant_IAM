@@ -54,7 +54,7 @@ export default function OrgDialog({
       <form onSubmit={onSubmit}>
         <DialogContent>
 
-          {/* 🌍 AutoComplete Search box */}
+          {/*AutoComplete Search box */}
           <Box sx={{ mb: 2 }}>
             <AutoCompleteSearch onSelect={handleLocationSelect} />
           </Box>

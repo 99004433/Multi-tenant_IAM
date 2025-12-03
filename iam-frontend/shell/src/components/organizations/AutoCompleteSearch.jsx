@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { computeDepth } from "../../utils/orgUtils";
 
 export default function AutoCompleteSearch({ onSelect }) {
   const [service, setService] = useState(null);
