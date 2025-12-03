@@ -45,10 +45,10 @@ public class UserController {
                 .map(ResponseEntity::ok);
     }
 
-//    @GetMapping("getAllUsers")
-//    public Flux<UserResponseDto> getAll() {
-//        return userService.getAllUsers();
-//    }
+    @GetMapping("getAllUsers")
+    public Flux<UserResponseDto> getAllUser() {
+        return userService.getAllUsers();
+    }
 
 
     @PutMapping("/updateUser/{id}")
