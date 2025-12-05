@@ -1,69 +1,102 @@
-package com.group_service.group_service.entity;
-//import jakarta.persistence.*;
-//import lombok.*;
-//import org.hibernate.annotations.CreationTimestamp;
-//import org.hibernate.annotations.UpdateTimestamp;
-//
-//import java.time.LocalDateTime;
-//import java.util.List;
-//
-//
-//@Table(name = "groups")
-//@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-//public class Group {
-//
-//	@Id
-//	@GeneratedValue(strategy = GenerationType.IDENTITY)
-//	private Long groupId;
-//
-//	// reference to organization id only (microservice-friendly)
-//	private Long orgId;
-//
-//	@Column(nullable = false)
-//	private String name;
-//
-//	private String description;
-//	private String status;
-//
-//	// allowed role ids for the group — stored as an element collection
-//	@ElementCollection
-//	@CollectionTable(name = "group_allowed_roles", joinColumns = @JoinColumn(name = "group_id"))
-//	@Column(name = "role_id")
-//	private List<Long> allowedRoleIds;
-//
-//	@CreationTimestamp
-//	private LocalDateTime createdAt;
-//	@UpdateTimestamp
-//	private LocalDateTime updatedAt;
-//}
 
+package com.group_service.group_service.entity;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Table("groups")
 @Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Group {
-	@Id
-	private Long groupId;
-	
-	@Column(value = "org_id")
-	private Long orgId;
-	private String name;
-	private String description;
-	private String status;
-	
-	@Column(value = "allowed_role_ids")
-	private List<Long> allowedRoleIds;
-	private LocalDateTime createdAt;
-	private LocalDateTime updatedAt;
-}
 
+    @Id
+    @Column("group_id")
+    private Long groupId;
+
+    @Column("org_id")
+    private Long orgId; // ✅ Should be NOT NULL in DB
+
+    @Column("name")
+    private String name;
+
+    @Column("description")
+    private String description;
+
+    @Column("status")
+    private String status; // ✅ Consider using Enum for better type safety
+
+    @Column("allowed_role_ids")
+    private List<Long> allowedRoleIds; // ✅ With PostgreSQL BIGINT[] + R2DBC converters
+
+    @Column("created_at")
+    private LocalDateTime createdAt;
+
+    @Column("updated_at")
+    private LocalDateTime updatedAt;
+
+    // -------------------------
+    // Mutator methods (setters)
+    // -------------------------
+
+    /**
+     * Set updatedAt to the provided timestamp.
+     * Service/auditing layer should decide the moment of update.
+     */
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    /**
+     * Set name with safe trimming. Keeps nulls as null.
+     */
+    public void setName(String name) {
+        this.name = safeTrim(name);
+    }
+
+    /**
+     * Set description with safe trimming. Keeps nulls as null.
+     */
+    public void setDescription(String description) {
+        this.description = safeTrim(description);
+    }
+
+    /**
+     * Set allowedRoleIds with defensive copy.
+     * If the DB expects a mutable list, use new ArrayList<>(source).
+     * If null is passed, stores null.
+     */
+    public void setAllowedRoleIds(List<Long> allowedRoleIds) {
+        this.allowedRoleIds = copyMutableList(allowedRoleIds);
+    }
+
+    /**
+     * Set status as String, trimmed. Keeps nulls as null.
+     * (If you migrate to enum, change field + setter accordingly.)
+     */
+    public void setStatus(String status) {
+        this.status = status == null ? null : status.trim();
+    }
+
+    // -------------------------
+    // Private helper methods
+    // -------------------------
+
+    private String safeTrim(String s) {
+        return s == null ? null : s.trim();
+    }
+
+    /**
+     * Creates a defensive, mutable copy of the list (or null if source is null).
+     * Using mutable copy here can help with R2DBC mapping and change tracking.
+     */
+    private <T> List<T> copyMutableList(List<T> source) {
+        return source == null ? null : new ArrayList<>(source);
+    }
+}

@@ -15,12 +15,23 @@ import InputAdornment from '@mui/material/InputAdornment';
 
 import GroupFormDialog from './GroupFormDialog';
 
-
-// ✅ Safe for Vite and fallback
+// ✅ API base includes /api (aligns with backend controller @RequestMapping("/api/groups"))
 const API_BASE =
   (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE_URL) ||
-  'http://localhost:8085';
+  'http://localhost:8085/api';
 
+// -------- Normalizers aligned with backend DTO/Entity --------
+const normalizeGroup = (g) => ({
+  id: g.groupId ?? g.id,
+  name: g.name ?? '',
+  description: g.description ?? '',
+  status: String(g.status ?? 'ACTIVE').toUpperCase(),
+  parentOrgId: g.orgId ?? g.parentOrgId ?? '',        // backend sends orgId
+  allowed_role_ids: Array.isArray(g.allowedRoleIds)
+    ? g.allowedRoleIds
+    : (Array.isArray(g.allowed_role_ids) ? g.allowed_role_ids : []),
+  totalCount: g.totalCount ?? 0,
+});
 
 const normalizeOrg = (org) => ({
   id: org.orgId ?? org.id,
@@ -34,23 +45,12 @@ const normalizeRole = (role) => ({
   status: String(role.status ?? '').toUpperCase() || 'ACTIVE',
 });
 
-const normalizeGroup = (g) => ({
-  id: g.id ?? g.groupId,
-  name: g.name ?? '',
-  description: g.description ?? '',
-  status: String(g.status ?? 'ACTIVE').toUpperCase(),
-  // store org ID (preferred)
-  parentOrgId: g.parentOrgId ?? g.parentOrg ?? null,
-  allowed_role_ids: Array.isArray(g.allowed_role_ids) ? g.allowed_role_ids : [],
-  totalCount: g.totalCount ?? 0,
-});
-
 const GroupList = () => {
   const [groups, setGroups] = useState([]);
   const [organizations, setOrganizations] = useState([]);
   const [roles, setRoles] = useState([]);
 
-  const [selectedOrgId, setSelectedOrgId] = useState('');
+  const [selectedOrgId, setSelectedOrgId] = useState(''); // keep as string for Select
   const [searchQuery, setSearchQuery] = useState('');
 
   const [openDialog, setOpenDialog] = useState(false);
@@ -71,7 +71,7 @@ const GroupList = () => {
   // -------- Fetchers --------
   const fetchGroups = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/groups`);
+      const res = await axios.get(`${API_BASE}/groups`); // ✅ GET /api/groups
       const normalized = Array.isArray(res.data) ? res.data.map(normalizeGroup) : [];
       setGroups(normalized);
     } catch (err) {
@@ -82,6 +82,7 @@ const GroupList = () => {
 
   const fetchOrganizations = async () => {
     try {
+      // adjust if your backend path is different
       const res = await axios.get(`${API_BASE}/organizations`);
       const normalized = Array.isArray(res.data) ? res.data.map(normalizeOrg) : [];
       setOrganizations(normalized);
@@ -93,6 +94,7 @@ const GroupList = () => {
 
   const fetchRoles = async () => {
     try {
+      // adjust if your backend path is different
       const res = await axios.get(`${API_BASE}/roles`);
       const normalized = Array.isArray(res.data) ? res.data.map(normalizeRole) : [];
       setRoles(normalized);
@@ -108,7 +110,6 @@ const GroupList = () => {
     fetchRoles();
   }, []);
 
-  // Reset pagination when filter/search changes
   useEffect(() => {
     setPage(1);
   }, [selectedOrgId, searchQuery]);
@@ -120,7 +121,6 @@ const GroupList = () => {
     if (mode === 'edit' && group) {
       setCurrentGroup(normalizeGroup(group));
     } else {
-      // create mode: default to selected org filter (if set)
       setCurrentGroup({
         id: null,
         name: '',
@@ -138,6 +138,17 @@ const GroupList = () => {
     setOpenDialog(false);
   };
 
+  // ✅ Transform UI payload -> backend DTO (GroupRequestDto)
+  const toDto = (g) => ({
+    orgId: g.parentOrgId ? Number(g.parentOrgId) : null,
+    name: g.name?.trim(),
+    description: g.description?.trim() ?? '',
+    allowedRoleIds: Array.isArray(g.allowed_role_ids)
+      ? g.allowed_role_ids.map((x) => Number(x))
+      : [],
+    status: (g.status ?? 'ACTIVE').trim().toUpperCase(),
+  });
+
   const handleSubmitGroup = async (groupPayload) => {
     // Basic validation
     if (!groupPayload.name?.trim()) {
@@ -149,14 +160,15 @@ const GroupList = () => {
       return;
     }
 
+    const dto = toDto(groupPayload);
+
     try {
       if (dialogMode === 'create') {
-        await axios.post(`${API_BASE}/groups/create`, groupPayload);
+        // ✅ POST /api/groups (no /create)
+        await axios.post(`${API_BASE}/groups`, dto);
       } else {
-        await axios.put(
-          `${API_BASE}/groups/updatedGroup/${groupPayload.id}`,
-          groupPayload
-        );
+        // ✅ PUT /api/groups/{id} (no /updatedGroup)
+        await axios.put(`${API_BASE}/groups/${groupPayload.id}`, dto);
       }
       await fetchGroups();
       setOpenDialog(false);
@@ -169,7 +181,8 @@ const GroupList = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this group?')) return;
     try {
-      await axios.delete(`${API_BASE}/groups/deleteById/${id}`);
+      // ✅ DELETE /api/groups/{id} (no /deleteById)
+      await axios.delete(`${API_BASE}/groups/${id}`);
       fetchGroups();
     } catch (err) {
       console.error('Failed to delete group:', err);
@@ -182,8 +195,9 @@ const GroupList = () => {
     const q = searchQuery.trim().toLowerCase();
     return groups.filter((g) => {
       const matchName = g.name.toLowerCase().includes(q);
+      // Compare strings to avoid 1 vs "1" mismatches
       const matchOrg =
-        selectedOrgId ? String(g.parentOrgId) === String(selectedOrgId) : true;
+        selectedOrgId ? String(g.parentOrgId ?? '') === String(selectedOrgId) : true;
       return matchName && matchOrg;
     });
   }, [groups, searchQuery, selectedOrgId]);
@@ -260,7 +274,7 @@ const GroupList = () => {
             {organizations
               .filter((org) => org.status === 'ACTIVE')
               .map((org) => (
-                <MenuItem key={org.id} value={org.id}>
+                <MenuItem key={org.id} value={String(org.id)}>
                   {org.name}
                 </MenuItem>
               ))}
