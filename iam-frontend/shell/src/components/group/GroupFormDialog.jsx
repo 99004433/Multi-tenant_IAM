@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React from "react";
 import {
   DialogTitle,
   DialogContent,
@@ -11,11 +10,12 @@ import {
   Select,
   MenuItem,
   Button,
-  Chip
-} from '@mui/material';
+  Chip,
+} from "@mui/material";
 
 const GroupFormDialog = ({
-  mode = 'create',
+  open,
+  mode = "create",
   organizations = [],
   roles = [],
   group,
@@ -23,7 +23,7 @@ const GroupFormDialog = ({
   onCancel,
   onSubmit,
 }) => {
-  const title = mode === 'create' ? 'Add Group' : 'Edit Group';
+  const title = mode === "create" ? "Add Group" : "Edit Group";
 
   const handleField = (e) => {
     const { name, value } = e.target;
@@ -44,6 +44,8 @@ const GroupFormDialog = ({
     onSubmit(group);
   };
 
+  if (!open) return null;
+
   return (
     <>
       <DialogTitle>{title}</DialogTitle>
@@ -55,7 +57,7 @@ const GroupFormDialog = ({
             label="Group Name"
             name="name"
             fullWidth
-            value={group.name || ''}
+            value={group.name || ""}
             onChange={handleField}
             required
           />
@@ -66,7 +68,7 @@ const GroupFormDialog = ({
             label="Description"
             name="description"
             fullWidth
-            value={group.description || ''}
+            value={group.description || ""}
             onChange={handleField}
           />
 
@@ -76,12 +78,12 @@ const GroupFormDialog = ({
             <Select
               labelId="org-select-label"
               id="org-select"
-              value={group.parentOrgId ?? ''}
+              value={group.parentOrgId ?? ""}
               onChange={handleOrgChange}
             >
               <MenuItem value="">Select...</MenuItem>
               {organizations
-                .filter((org) => org.status === 'ACTIVE')
+                .filter((org) => org.status === "ACTIVE" || org.status === undefined)
                 .map((org) => (
                   <MenuItem key={org.id} value={org.id}>
                     {org.name}
@@ -100,7 +102,7 @@ const GroupFormDialog = ({
               value={group.allowed_role_ids ?? []}
               onChange={handleRolesChange}
               renderValue={(selected) => (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                   {selected.map((roleId) => {
                     const r = roles.find((rr) => String(rr.id) === String(roleId));
                     return <Chip key={roleId} label={r?.name ?? roleId} />;
@@ -123,7 +125,7 @@ const GroupFormDialog = ({
               labelId="status-label"
               id="status-select"
               name="status"
-              value={group.status ?? 'ACTIVE'}
+              value={group.status ?? "ACTIVE"}
               onChange={handleField}
             >
               <MenuItem value="ACTIVE">Active</MenuItem>
@@ -137,7 +139,7 @@ const GroupFormDialog = ({
       <DialogActions>
         <Button onClick={onCancel}>Cancel</Button>
         <Button onClick={submit} variant="contained" color="primary">
-          {mode === 'create' ? 'Add' : 'Update'}
+          {mode === "create" ? "Add" : "Update"}
         </Button>
       </DialogActions>
     </>

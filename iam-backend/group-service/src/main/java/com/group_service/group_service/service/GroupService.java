@@ -3,6 +3,8 @@ package com.group_service.group_service.service;
 
 import com.group_service.group_service.dto.GroupRequestDto;
 import com.group_service.group_service.dto.GroupResponseDto;
+import com.group_service.group_service.entity.Group;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -22,4 +24,7 @@ public interface GroupService {
 
     // Delete group by ID
     Mono<Void> deleteGroupById(Long id);
+
+    Flux<Group> getGroupsByOrg(Long orgId);
 }
+

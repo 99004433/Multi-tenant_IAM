@@ -1,19 +1,29 @@
 
 package com.group_service.group_service.controller;
 
-import com.group_service.group_service.dto.GroupRequestDto;
-import com.group_service.group_service.dto.GroupResponseDto;
-import com.group_service.group_service.exception.GroupNotFoundException;
-import com.group_service.group_service.service.GroupService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import java.net.URI;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.group_service.group_service.dto.GroupRequestDto;
+import com.group_service.group_service.dto.GroupResponseDto;
+import com.group_service.group_service.entity.Group;
+import com.group_service.group_service.exception.GroupNotFoundException;
+import com.group_service.group_service.service.GroupService;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.net.URI;
 
 @RestController
 @RequestMapping("/api/groups")
@@ -82,4 +92,12 @@ public Mono<ResponseEntity<GroupResponseDto>> createGroup(@Valid @RequestBody Gr
     public Flux<GroupResponseDto> getAllGroups() {
         return groupService.getAllGroups();
     }
+
+    @GetMapping("/byOrg/{orgId}")
+    public Flux<Group> getGroupsByOrg(@PathVariable Long orgId) {
+        return groupService.getGroupsByOrg(orgId);
+    }
+
+
 }
+

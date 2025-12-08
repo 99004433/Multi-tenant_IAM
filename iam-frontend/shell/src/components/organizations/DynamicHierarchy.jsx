@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState } from "react";
 import {
   Box,
@@ -10,32 +11,26 @@ import {
   Grid,
   Chip,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  MenuItem,
-  CircularProgress,
   Tooltip,
-  Divider,
 } from "@mui/material";
-import OrgFooterButtons from "../organizations/OrgFooterButtons";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
-
+import OrgGroups from "../organizations/OrgGroups";
+import OrgRoles from "../roles/OrgRoles";
 import organizationService from "../../Services/organizationService";
-import OrgDialog from "../organizations/OrgDialog"; 
+import OrgDialog from "../organizations/OrgDialog";
+import OrgUsers from "../organizations/OrgUsers";
+
 export default function DynamicHierarchy({
   rootOrg,
   allOrgs,
   onBackToParent,
   onRefresh,
 }) {
-  const [stack, setStack] = useState([rootOrg]);//Keeps track of the navigation path (like breadcrumbs).
-  const current = stack[stack.length - 1];// The organization currently being viewed (last in the stack).
+  const [stack, setStack] = useState([rootOrg]);
+  const current = stack[stack.length - 1];
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -52,10 +47,13 @@ export default function DynamicHierarchy({
     status: "active",
   });
 
+  // State to track which section is open
+  const [activeSection, setActiveSection] = useState(null); // "users" | "groups" | "roles" | null
+  const [activePayload, setActivePayload] = useState(null); 
+
   const childrenOf = (id) => allOrgs.filter((o) => o.parentOrgId === id);
   const children = useMemo(() => childrenOf(current.orgId), [allOrgs, current]);
 
-  // Fast child count
   const childCountMap = useMemo(() => {
     const m = new Map();
     allOrgs.forEach((o) => {
@@ -67,7 +65,10 @@ export default function DynamicHierarchy({
 
   const childCount = (id) => childCountMap.get(id) || 0;
 
-  const goInto = (child) => setStack((s) => [...s, child]);
+  const goInto = (child) => {
+    setStack((s) => [...s, child]);
+    setActiveSection(null);
+  };
 
   const goBackOne = () => {
     if (stack.length === 1) {
@@ -75,6 +76,7 @@ export default function DynamicHierarchy({
       return;
     }
     setStack((s) => s.slice(0, s.length - 1));
+    setActiveSection(null);
   };
 
   const openAddDialog = () => {
@@ -140,217 +142,265 @@ export default function DynamicHierarchy({
       alert("Delete failed");
     }
   };
-    // ----------------------- USER / GROUP / ROLE DIALOGS -----------------------
-  const [userDialogOpen, setUserDialogOpen] = useState(false);
-  const [groupDialogOpen, setGroupDialogOpen] = useState(false);
-  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
 
-  const openUserDialog = (org) => setUserDialogOpen(true);
-  const openGroupDialog = (org) => setGroupDialogOpen(true);
-  const openRoleDialog = (org) => setRoleDialogOpen(true);
-
+  // ✅ Toggle button handlers
+//   const toggleSection = (section) => {
+//     setActiveSection(activeSection === section ? null : section);
+//   };
+// modify toggleSection to accept optional payload
+const toggleSection = (section, payload = null) => {
+  // if same section clicked twice -> collapse
+  if (activeSection === section) {
+    setActiveSection(null);
+    setActivePayload(null);
+  } else {
+    setActiveSection(section);
+    setActivePayload(payload);
+  }
+};
   return (
-    <Box>
-
-      {/* ---------------------------------- BREADCRUMB ---------------------------------- */}
-      <Breadcrumbs sx={{ mb: 2 }} separator="›">
-        <Link
-          component="button"
-          onClick={onBackToParent}
-          sx={{ fontWeight: 500 }}
-        >
-          Parent Organizations
-        </Link>
-
-        {stack.map((s, i) =>
-          i === stack.length - 1 ? (
-            <Typography key={s.orgId} fontWeight={700}>
-              {s.name}
-            </Typography>
-          ) : (
-            <Link
-              key={s.orgId}
-              component="button"
-              onClick={() => setStack(stack.slice(0, i + 1))}
-            >
-              {s.name}
-            </Link>
-          )
-        )}
-      </Breadcrumbs>
-
-      {/* ---------------------------------- CURRENT ORG CARD ---------------------------------- */}
-      <Card
-        elevation={2}
-        sx={{
-          mb: 3,
-          borderRadius: 2,
-          borderLeft: "5px solid #1976d2",
-        }}
-      >
-        <CardContent sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <IconButton onClick={goBackOne}>
-            <ArrowBackIcon />
-          </IconButton>
-
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="h6" fontWeight={700}>
-              {current.name}
-            </Typography>
-            <Typography>{current.address}</Typography>
-          </Box>
-
-          <Button variant="contained" startIcon={<AddIcon />} onClick={openAddDialog}>
-            Add Child
-          </Button>
-        </CardContent>
-      </Card>
-
-  {/* ---------------------------------- CHILD LIST ---------------------------------- */}
-<Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-  Children ({children.length})
-</Typography>
-
-{children.length === 0 && (
   <Box
     sx={{
-      py: 3,
-      px: 2,
-      border: "1px dashed #e0e0e0",
-      borderRadius: 1,
-      textAlign: "center",
+      height: "100vh",
+      display: "flex",
+      flexDirection: "column",
+      overflow: "hidden",
+      zoom: 0.9,
     }}
   >
-    <Typography color="text.secondary">
-      No child organizations.
-    </Typography>
-  </Box>
-)}
+    {/* BREADCRUMB */}
+    <Breadcrumbs sx={{ mb: 2, flexShrink: 0 }} separator="›">
+      <Link component="button" onClick={onBackToParent} sx={{ fontWeight: 500 }}>
+        Parent Organizations
+      </Link>
 
-{/* Scrollable container for child list */}
-<Box
-  sx={{
-    maxHeight: "55vh",   // adjust as needed
-    overflowY: "auto",   // enables vertical scroll
-    pr: 1,               // optional padding for scrollbar
-  }}
->
-  <Grid
-    container
-    spacing={3}
-    sx={{
-      paddingX: 2,
-      paddingY: 1,
-      mb: 2,
-    }}
-  >
-    {children.map((c) => (
-      <Grid item xs={12} sm={6} md={4} key={c.orgId}>
-        <Card
-          onClick={() => goInto(c)}
+      {stack.map((s, i) =>
+        i === stack.length - 1 ? (
+          <Typography key={s.orgId} fontWeight={700}>
+            {s.name}
+          </Typography>
+        ) : (
+          <Link
+            key={s.orgId}
+            component="button"
+            onClick={() => setStack(stack.slice(0, i + 1))}
+          >
+            {s.name}
+          </Link>
+        )
+      )}
+    </Breadcrumbs>
+
+    {/* CURRENT ORG CARD */}
+    <Card
+      elevation={2}
+      sx={{
+        flexShrink: 0,
+        mb: 2,
+        borderRadius: 2,
+        borderLeft: "5px solid #1976d2",
+      }}
+    >
+      <CardContent sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+        <IconButton onClick={goBackOne}>
+          <ArrowBackIcon />
+        </IconButton>
+
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="h6" fontWeight={700}>
+            {current.name}
+          </Typography>
+          <Typography>{current.address}</Typography>
+        </Box>
+
+        <Button variant="contained" startIcon={<AddIcon />} onClick={openAddDialog}>
+          Add Child
+        </Button>
+      </CardContent>
+    </Card>
+
+    {/* MAIN CONTENT SCROLL AREA */}
+    <Box
+      sx={{
+        flex: 1,
+        overflowY: "auto",
+        paddingRight: 1,
+        paddingLeft: 0.5,
+      }}
+    >
+      {/* CHILDREN LIST TITLE */}
+      <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
+        Children ({children.length})
+      </Typography>
+
+      {/* NO CHILDREN */}
+      {children.length === 0 && (
+        <Box
           sx={{
-            cursor: "pointer",
+            py: 3,
+            px: 2,
+            border: "1px dashed #e0e0e0",
             borderRadius: 2,
-            borderLeft: "4px solid #4caf50",
-            minHeight: 180,
-            transition: "0.2s",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-            "&:hover": {
-              backgroundColor: "#f4fff4",
-              transform: "scale(1.02)",
-            },
+            textAlign: "center",
+            mb: 3,
           }}
         >
-          <CardContent>
-            <Typography fontWeight={700}>{c.name}</Typography>
-            <Typography color="text.secondary">{c.address}</Typography>
+          <Typography color="text.secondary">No child organizations.</Typography>
+        </Box>
+      )}
 
-            <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
-              <Chip
-                size="small"
-                label={`Children: ${childCount(c.orgId)}`}
+      {/* CHILDREN GRID – FULL WIDTH */}
+      {children.length > 0 && (
+        <Grid container spacing={3}>
+          {children.map((c) => (
+            <Grid item xs={12} sm={6} md={4} key={c.orgId}>
+              <Card
+                onClick={() => goInto(c)}
                 sx={{
-                  background: "#e3f2fd",
-                  color: "#1976d2",
-                  fontWeight: 600,
+                  cursor: "pointer",
+                  borderRadius: 2,
+                  borderLeft: "4px solid #4caf50",
+                  minHeight: 180,
+                  transition: "0.2s",
+                  "&:hover": {
+                    backgroundColor: "#f4fff4",
+                    transform: "scale(1.02)",
+                  },
                 }}
-              />
-              <Chip
-                size="small"
-                label={c.status.toUpperCase()}
-                sx={{
-                  background: c.status === "active" ? "#e8f5e9" : "#ffebee",
-                  color: c.status === "active" ? "#2e7d32" : "#c62828",
-                  fontWeight: 700,
-                }}
-              />
-            </Box>
+              >
+                <CardContent>
+                  <Typography fontWeight={700}>{c.name}</Typography>
+                  <Typography color="text.secondary">{c.address}</Typography>
 
-            <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
-              <Tooltip title="Edit">
-                <IconButton
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openEditDialog(c);
-                  }}
-                >
-                  <EditIcon fontSize="small" color="primary" />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Delete">
-                <IconButton
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(c.orgId);
-                  }}
-                >
-                  <DeleteIcon fontSize="small" color="error" />
-                </IconButton>
-              </Tooltip>
-            </Box>
-          </CardContent>
-        </Card>
-      </Grid>
-    ))}
-  </Grid>
-</Box>
- 
-<Box
-  sx={{
-    position: "fixed",
-    bottom: 0,
-    left: 0,
-    width: "100%",
-    bgcolor: "#fff",
-    borderTop: "1px solid #e0e0e0",
-    py: 0.5,              // reduced vertical padding
-    px: 1,                // optional horizontal padding
-    display: "flex",
-    justifyContent: "center",
-    zIndex: 999,          // above content
-  }}
->
-  <OrgFooterButtons
-    current={current}
-    openUserDialog={openUserDialog}
-    openGroupDialog={openGroupDialog}
-    openRoleDialog={openRoleDialog}
+                  <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
+                    <Chip
+                      size="small"
+                      label={`Children: ${childCount(c.orgId)}`}
+                      sx={{
+                        background: "#e3f2fd",
+                        color: "#1976d2",
+                        fontWeight: "bold",
+                      }}
+                    />
+
+                    <Chip
+                      size="small"
+                      label={c.status.toUpperCase()}
+                      sx={{
+                        background: c.status === "active" ? "#e8f5e9" : "#ffebee",
+                        color: c.status === "active" ? "#2e7d32" : "#c62828",
+                        fontWeight: "bold",
+                      }}
+                    />
+                  </Box>
+
+                  <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openEditDialog(c);
+                      }}
+                    >
+                      <EditIcon fontSize="small" color="primary" />
+                    </IconButton>
+
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(c.orgId);
+                      }}
+                    >
+                      <DeleteIcon fontSize="small" color="error" />
+                    </IconButton>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      )}
+
+      {/* THREE BUTTONS FULL WIDTH */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          gap: 2,
+          mt: 4,
+          mb: 3,
+          flexWrap: "wrap",
+          width: "100%",
+        }}
+      >
+        <Button
+          variant={activeSection === "users" ? "contained" : "outlined"}
+          onClick={() => toggleSection("users", { org: current })} // your OrgUsers expects currentOrg prop
+        >
+          {activeSection === "users" ? "Hide Users" : "Users"}
+        </Button>
+
+        <Button
+          variant={activeSection === "groups" ? "contained" : "outlined"}
+          onClick={() => toggleSection("groups", { org: current })}
+        >
+          {activeSection === "groups" ? "Hide Groups" : "Groups"}
+        </Button>
+
+        <Button
+          variant={activeSection === "roles" ? "contained" : "outlined"}
+           onClick={() => toggleSection("roles", { org: current })} // roles at org-level can show all roles for org; you can also open roles from group
+        >
+          {activeSection === "roles" ? "Hide Roles" : "Roles"}
+        </Button>
+      </Box>
+
+      {/* USER / GROUP / ROLE TABLES */}
+      {activeSection === "users" && (
+        // <OrgUsers currentOrg={current} onClose={() => setActiveSection(null)} />
+         <OrgUsers
+    currentOrg={activePayload?.org || current}
+    onClose={() => { setActiveSection(null); setActivePayload(null); }}
   />
-</Box>
-      {/* ---------------------------------- DIALOG ---------------------------------- */}
-      <OrgDialog
-        open={dialogOpen}
-        form={form}
-        submitting={submitting}
-        onClose={() => setDialogOpen(false)}
-        onChange={handleFormChange}
-        onSubmit={handleSubmit}
-        parentName={current.name}
-        />
+      )}
+
+      {activeSection === "groups" && (
+  <OrgGroups
+    currentOrg={activePayload?.org || current}
+    onClose={() => { setActiveSection(null); setActivePayload(null); }}
+    onSelectGroup={(group) => {
+      // drill into roles for selected group
+      setActiveSection("roles");
+      setActivePayload({ group, org: activePayload?.org || current });
+    }}
+  />
+)}
+      {activeSection === "roles" && (
+  <OrgRoles
+    currentGroup={activePayload?.group || { name: activePayload?.org?.name, id: activePayload?.org?.orgId }}
+    onClose={() => { setActiveSection(null); setActivePayload(null); }}
+    onSelectRole={(role) => {
+      // optionally show users filtered by role
+      setActiveSection("users");
+      // pass an augmented payload: users component expects currentOrg; we can pass role via props or add a new prop in OrgUsers
+      setActivePayload({ org: activePayload?.org || current, role });
+    }}
+  />
+)}
     </Box>
-  );
+
+    {/* DIALOG */}
+    <OrgDialog
+      open={dialogOpen}
+      form={form}
+      submitting={submitting}
+      onClose={() => setDialogOpen(false)}
+      onChange={handleFormChange}
+      onSubmit={handleSubmit}
+      parentName={current.name}
+    />
+  </Box>
+);
+
 }
